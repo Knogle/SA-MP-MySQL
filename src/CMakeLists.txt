@@ -1,5 +1,4 @@
 include(AMXConfig)
-include(AddSAMPPlugin)
 
 if(NOT WIN32 AND MYSQLCAPI_LIBRARY_STATIC)
 	option(BUILD_STATIC "Build static library" OFF)
@@ -9,11 +8,6 @@ set(SAMP_SDK_ROOT "${PROJECT_SOURCE_DIR}/libs/sdk")
 find_package(SAMPSDK REQUIRED)
 
 set(MYSQL_PLUGIN_CONFIG_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/config_headers")
-include_directories(
-	${SAMPSDK_INCLUDE_DIR}
-	${MYSQL_PLUGIN_CONFIG_INCLUDE_DIR}
-	${PROJECT_SOURCE_DIR}/libs/samp-log-core/include
-)
 
 configure_file(
 	"../a_mysql.inc.in"
@@ -27,7 +21,7 @@ configure_file(
 	@ONLY
 )
 
-add_samp_plugin(mysql
+add_library(mysql SHARED
 	${SAMPSDK_DIR}/amxplugin.cpp
 	${SAMPSDK_DIR}/amxplugin2.cpp
 	${SAMPSDK_DIR}/amx/getch.c
@@ -50,18 +44,24 @@ add_samp_plugin(mysql
 	CQuery.hpp
 	CResult.cpp
 	CResult.hpp
+	plugin_runtime.cpp
+	plugin_runtime.hpp
 	natives.cpp
 	natives.hpp
 	CSingleton.hpp
 	main.cpp
 	misc.hpp
 	mysql.hpp
-	sdk.hpp
+	amx_sdk.hpp
 	types.hpp
-	plugin.def
 )
 
+set_target_properties(mysql PROPERTIES PREFIX "")
+
 target_include_directories(mysql PRIVATE
+	${SAMPSDK_INCLUDE_DIR}
+	${MYSQL_PLUGIN_CONFIG_INCLUDE_DIR}
+	${PROJECT_SOURCE_DIR}/libs/samp-log-core/include
 	${Boost_INCLUDE_DIR}
 	${MYSQLCAPI_INCLUDE_DIR}
 	${LOGCORE_INCLUDE_DIR}
@@ -93,14 +93,24 @@ target_compile_features(mysql PUBLIC
 add_dependencies(mysql log-core fmt)
 
 if(MSVC)
-	add_definitions(-D_CRT_SECURE_NO_WARNINGS -DNOMINMAX -D_ENABLE_ATOMIC_ALIGNMENT_FIX)
+	target_compile_definitions(mysql PRIVATE
+		_CRT_SECURE_NO_WARNINGS
+		NOMINMAX
+		_ENABLE_ATOMIC_ALIGNMENT_FIX
+	)
+elseif(UNIX)
+	target_compile_definitions(mysql PRIVATE LINUX)
 endif()
 
-target_link_libraries(mysql log-core fmt)
+target_link_libraries(mysql PRIVATE
+	OMP-SDK
+	log-core
+	fmt
+)
 
 if(UNIX)
 	if(NOT APPLE)
-		target_link_libraries(mysql rt)
+		target_link_libraries(mysql PRIVATE rt)
 	endif()
 
 	set_target_properties(mysql PROPERTIES
@@ -108,12 +118,12 @@ if(UNIX)
 endif()
 
 if(BUILD_STATIC)
-	target_link_libraries(mysql "${MYSQLCAPI_LIBRARY_STATIC}")
+	target_link_libraries(mysql PRIVATE "${MYSQLCAPI_LIBRARY_STATIC}")
 else()
-	target_link_libraries(mysql "${MYSQLCAPI_LIBRARY}")
+	target_link_libraries(mysql PRIVATE "${MYSQLCAPI_LIBRARY}")
 endif()
 
-install(TARGETS mysql DESTINATION "plugins/")
+install(TARGETS mysql DESTINATION "components/")
 install(FILES "$<TARGET_FILE:log-core>" DESTINATION "./")
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/a_mysql.inc" DESTINATION "pawno/include/")
 install(FILES "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION "./")

@@ -1,19 +1,19 @@
-# MySQL Plugin for San Andreas Multiplayer (SA:MP)
+# MySQL Component for open.mp
 
 | Travis CI | AppVeyor | Total downloads | Latest release |
 | :---: | :---: | :---: | :---: |
 |  [![Build Status](https://travis-ci.org/pBlueG/SA-MP-MySQL.svg?branch=master)](https://travis-ci.org/pBlueG/SA-MP-MySQL)   |  [![Build status](https://ci.appveyor.com/api/projects/status/xssdxu7wp8l3q2mk/branch/master?svg=true)](https://ci.appveyor.com/project/maddinat0r/sa-mp-mysql/branch/master)  |  [![All Releases](https://img.shields.io/github/downloads/pBlueG/SA-MP-MySQL/total.svg?maxAge=86400)](https://github.com/pBlueG/SA-MP-MySQL/releases)  |  [![latest release](https://img.shields.io/github/release/pBlueG/SA-MP-MySQL.svg?maxAge=86400)](https://github.com/pBlueG/SA-MP-MySQL/releases) <br> [![Github Releases](https://img.shields.io/github/downloads/pBlueG/SA-MP-MySQL/latest/total.svg?maxAge=86400)](https://github.com/pBlueG/SA-MP-MySQL/releases)  |
 -------------------------------------------------
-*The best and most famous MySQL plugin for SA:MP out there!*
+*The well-known MySQL component for open.mp servers.*
 
-**This plugin allows you to use MySQL in PAWN. It's currently being developed by [maddinat0r](https://github.com/maddinat0r).**
+**This component allows you to use MySQL in PAWN. It's currently being developed by [maddinat0r](https://github.com/maddinat0r).**
 
 How to install
 --------------
-1. Extract the content of the downloaded archive into the root directory of your SA-MP server.
-2. Edit the server configuration (*server.cfg*) as follows:
-   - Windows: `plugins mysql`
-   - Linux: `plugins mysql.so`
+1. Extract the content of the downloaded archive into the root directory of your open.mp server.
+2. Edit the server configuration (*config.json*) and load the component:
+   - Windows: `"components": ["mysql"]`
+   - Linux: `"components": ["mysql"]`
 
 F.A.Q.
 ------
@@ -47,10 +47,10 @@ A: That's because the plugin uses multiple direct database connections per conne
 
 Build instruction
 ---------------
-*Note*: The plugin is a 32-bit library. Your compiler/toolchain must support `-m32`.
+*Note*: By default the component builds as 32-bit (`-DFORCE_32_BIT=ON`). Disable this via `-DFORCE_32_BIT=OFF` if your environment provides compatible 64-bit dependencies.
 
 ### Dependency layout
-- Git submodules: `libs/sdk`, `libs/cmake`, `libs/fmt`, `tests/include/amx`
+- Git submodules: `libs/sdk`, `libs/cmake`, `libs/fmt`, `libs/omp-sdk`, `tests/include/amx`
 - Vendored in this repository: `libs/samp-log-core`, `libs/yaml-cpp`, `libs/boost`, `libs/mariadb-connector-c`
 
 ### Linux (tested on Fedora 43, GCC 15)
@@ -66,7 +66,7 @@ Build instruction
 5. Build:
    - `CCACHE_TEMPDIR=/tmp cmake --build build -j$(nproc)`
 6. Result:
-   - Plugin: `build/src/mysql.so`
+   - Component: `build/src/mysql.so`
    - Log runtime: `build/libs/samp-log-core/src/log-core2.so`
 
 ### Notes

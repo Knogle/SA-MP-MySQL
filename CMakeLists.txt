@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.19)
 project(mysql)
 
 set(MYSQL_PLUGIN_VERSION "R41-4")
@@ -71,5 +71,10 @@ if(NOT TARGET fmt)
 endif()
 mark_as_advanced(FMT_DOC FMT_INSTALL FMT_PEDANTIC FMT_TEST FMT_USE_CPP11)
 
+if(EXISTS "${PROJECT_SOURCE_DIR}/libs/omp-sdk/CMakeLists.txt")
+	add_subdirectory(libs/omp-sdk)
+else()
+	message(FATAL_ERROR "open.mp SDK submodule not found. Run: git submodule update --init --recursive")
+endif()
 
 add_subdirectory(src)

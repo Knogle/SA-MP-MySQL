@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CSingleton.hpp"
-#include "sdk.hpp"
+#include "amx_sdk.hpp"
 
 #include <string>
 #include <queue>
