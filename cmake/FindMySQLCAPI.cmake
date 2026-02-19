@@ -55,36 +55,68 @@ else()
 		MYSQLCAPI_INCLUDE_DIR
 		NAMES
 		"mysql_version.h"
+		"mariadb_version.h"
+		"mysql.h"
 		PATHS
 		"/usr/include"
 		HINTS
 		${MYSQLCAPI_ROOT_DIR}
+		"${CMAKE_SOURCE_DIR}/libs/mariadb-connector-c"
 		PATH_SUFFIXES
+		include
 		mysql
+		mariadb
 	)
 
     find_library(
 		MYSQLCAPI_LIBRARY
-		NAME
+		NAMES
 		mysqlclient_r
 		mysqlclient
+		mariadb
+		libmariadb
+		libmariadb.so.3
 		HINTS
 		${MYSQLCAPI_ROOT_DIR}
 		PATH_SUFFIXES
+		lib32
+		lib
 		mysql
+		mariadb
 		i386-linux-gnu
 		x86_64-linux-gnu
 	)
+	if(NOT MYSQLCAPI_LIBRARY)
+		find_file(
+			MYSQLCAPI_LIBRARY
+			NAMES
+			"libmariadb.so.3"
+			"libmysqlclient.so"
+			HINTS
+			${MYSQLCAPI_ROOT_DIR}
+			PATH_SUFFIXES
+			lib32
+			lib
+			mysql
+			mariadb
+			i386-linux-gnu
+			x86_64-linux-gnu
+		)
+	endif()
 	set(MYSQLCAPI_LIBRARY_SHARED ${MYSQLCAPI_LIBRARY})
 
     find_library(
 		MYSQLCAPI_LIBRARY_STATIC
-		NAME
+		NAMES
 		"libmysqlclient.a"
+		"libmariadb.a"
 		HINTS
 		${MYSQLCAPI_ROOT_DIR}
 		PATH_SUFFIXES
+		lib32
+		lib
 		mysql
+		mariadb
 		i386-linux-gnu
 		x86_64-linux-gnu
 	)

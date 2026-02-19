@@ -1081,7 +1081,7 @@ AMX_DECLARE_NATIVE(Native::mysql_format)
 		return 0;
 	}
 
-	fmt::MemoryWriter dest_writer;
+	string dest_writer;
 
 	const unsigned int
 		first_param_idx = 5,
@@ -1107,7 +1107,7 @@ AMX_DECLARE_NATIVE(Native::mysql_format)
 
 			if (*format_str == '%')
 			{
-				dest_writer << '%';
+				dest_writer.push_back('%');
 				continue;
 			}
 
@@ -1136,11 +1136,11 @@ AMX_DECLARE_NATIVE(Native::mysql_format)
 				case 'x':
 				case 'X':
 				case 'u':
-					dest_writer << fmt::sprintf(format_spec,
+					dest_writer += fmt::sprintf(format_spec,
 												static_cast<int>(*amx_address));
 					break;
 				case 's':
-					dest_writer << amx_GetCppString(amx,
+					dest_writer += amx_GetCppString(amx,
 										params[first_param_idx + param_counter]);
 					break;
 				case 'f':
@@ -1149,7 +1149,7 @@ AMX_DECLARE_NATIVE(Native::mysql_format)
 				case 'A':
 				case 'g':
 				case 'G':
-					dest_writer << fmt::sprintf(format_spec,
+					dest_writer += fmt::sprintf(format_spec,
 												amx_ctof(*amx_address));
 					break;
 				case 'e':
@@ -1163,7 +1163,7 @@ AMX_DECLARE_NATIVE(Native::mysql_format)
 						string escaped_str;
 						if (handle->EscapeString(source_str, escaped_str))
 						{
-							dest_writer << escaped_str;
+							dest_writer += escaped_str;
 						}
 						else
 						{
@@ -1179,7 +1179,7 @@ AMX_DECLARE_NATIVE(Native::mysql_format)
 				{
 					string bin_str;
 					ConvertDataToStr<int, 2>(*amx_address, bin_str);
-					dest_writer << bin_str;
+					dest_writer += bin_str;
 				}
 				break;
 				default:
@@ -1197,7 +1197,7 @@ AMX_DECLARE_NATIVE(Native::mysql_format)
 		}
 		else
 		{
-			dest_writer << *format_str;
+			dest_writer.push_back(*format_str);
 		}
 	}
 

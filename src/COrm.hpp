@@ -173,7 +173,7 @@ private:
 	CError<COrm> GenerateInsertQuery(string &dest);
 	CError<COrm> GenerateDeleteQuery(string &dest);
 
-	void WriteVariableNamesAsList(fmt::MemoryWriter &writer);
+	void WriteVariableNamesAsList(string &writer);
 };
 
 class COrmManager : public CSingleton<COrmManager>

@@ -47,24 +47,31 @@ A: That's because the plugin uses multiple direct database connections per conne
 
 Build instruction
 ---------------
-*Note*: The plugin has to be a 32-bit library; that means all required libraries have to be compiled in 32-bit and the compiler has to support 32-bit.
-#### Windows
-1. install a C++ compiler of your choice
-2. install the [MySQL C Connector (version 6.1.6)](http://dev.mysql.com/downloads/connector/c/)
-3. install the [Boost libraries (version 1.57 or higher)](http://www.boost.org/users/download/)
-4. install [CMake](http://www.cmake.org/)
-5. clone this repository
-6. create a folder named `build` and execute CMake in there
-7. build the generated project files with your C++ compiler
+*Note*: The plugin is a 32-bit library. Your compiler/toolchain must support `-m32`.
 
-#### Linux
-1. install a C++ compiler of your choice
-2. install the appropriate MySQL client (version 5.5 or higher) through your package manager
-3. install the [Boost libraries (version 1.57 or higher)](http://www.boost.org/users/download/)
-4. install [CMake](http://www.cmake.org/)
-5. clone this repository
-6. create a folder named `build` and execute CMake in there (`mkdir build && cd build && cmake ..`)
-7. build the generated project files with your C++ compiler
+### Dependency layout
+- Git submodules: `libs/sdk`, `libs/cmake`, `libs/fmt`, `tests/include/amx`
+- Vendored in this repository: `libs/samp-log-core`, `libs/yaml-cpp`, `libs/boost`, `libs/mariadb-connector-c`
+
+### Linux (tested on Fedora 43, GCC 15)
+1. Install toolchain and CMake:
+   - `sudo dnf install cmake gcc gcc-c++ make ccache`
+2. Ensure 32-bit development runtime is available (`-m32` support).
+3. Clone and initialize submodules:
+   - `git clone <repo-url>`
+   - `cd SA-MP-MySQL`
+   - `git submodule update --init --recursive`
+4. Configure:
+   - `CCACHE_TEMPDIR=/tmp cmake -S . -B build -DFORCE_32_BIT=ON`
+5. Build:
+   - `CCACHE_TEMPDIR=/tmp cmake --build build -j$(nproc)`
+6. Result:
+   - Plugin: `build/src/mysql.so`
+   - Log runtime: `build/libs/samp-log-core/src/log-core2.so`
+
+### Notes
+- `libmariadb.so.3` is expected from `libs/mariadb-connector-c/lib32`.
+- If `ccache` fails with temp-dir permissions, keep using `CCACHE_TEMPDIR=/tmp` as above.
 
 Thanks to
 ---------
