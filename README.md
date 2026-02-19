@@ -36,6 +36,24 @@ The component supports open.mp config-based logging toggles:
 - `logging.mysql_warning`
 - `logging.mysql_error`
 
+## Linux Runtime Dependency (`libmariadb.so.3`)
+
+`libmariadb.so.3` must be available for the Linux component at runtime (32-bit).
+
+If you use the official release archive, copy the full `components/` folder so the bundled
+`libmariadb.so.3` is present next to `mysql.so`.
+
+If you build/deploy manually, install the 32-bit MariaDB connector library via your distro:
+
+- Fedora:
+  - `sudo dnf install mariadb-connector-c.i686`
+- Ubuntu/Debian:
+  - `sudo dpkg --add-architecture i386`
+  - `sudo apt update`
+  - `sudo apt install libmariadb3:i386`
+- CentOS/RHEL/Alma/Rocky:
+  - `sudo dnf install mariadb-connector-c.i686`
+
 ## Build from Source
 
 ### Repository setup
