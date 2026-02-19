@@ -21,12 +21,15 @@ if(WIN32)
     find_path(
 		MYSQLCAPI_INCLUDE_DIR
 		NAMES
+		"mysql.h"
 		"mariadb_version.h"
 		"mysql_version.h"
 		HINTS
 		${MYSQLCAPI_ROOT_DIR}
 		PATH_SUFFIXES
 		include
+		include/mysql
+		include/mariadb
 	)
 
     find_library(
@@ -48,6 +51,7 @@ if(WIN32)
 		HINTS
 		${MYSQLCAPI_ROOT_DIR}
 		PATH_SUFFIXES
+		bin
 		lib
 	)
 else()

@@ -7,6 +7,10 @@
 #include <cstdio>
 #include <utility>
 
+#ifdef ERROR
+#undef ERROR
+#endif
+
 namespace
 {
 constexpr unsigned int DEFAULT_LOG_MASK =
