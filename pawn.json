@@ -7,7 +7,10 @@
             "platform": "linux",
             "archive": true,
             "includes": ["mysql-.+\\/pawno\\/include"],
-            "plugins": ["mysql-.+\\/components\\/mysql.so"]
+            "plugins": ["mysql-.+\\/components\\/mysql.so"],
+            "files": {
+                "mysql-.+\\/components\\/libmariadb.so.3": "components/libmariadb.so.3"
+            }
         },
         {
             "name": "^mysql-.+-(win32|Win32|Windows)\\.zip$",
@@ -16,7 +19,7 @@
             "includes": ["mysql-.+\\/pawno\\/include"],
             "plugins": ["mysql-.+\\/components\\/mysql.dll"],
             "files": {
-                "mysql-.+\\/libmariadb.dll": "libmariadb.dll"
+                "mysql-.+\\/components\\/libmariadb.dll": "components/libmariadb.dll"
             }
         }
     ],

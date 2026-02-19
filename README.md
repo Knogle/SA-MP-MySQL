@@ -23,7 +23,7 @@ Current maintainer: **[Knogle](https://github.com/Knogle)**
 
 1. Download the latest release archive from the [Releases page](https://github.com/Knogle/SA-MP-MySQL/releases).
 2. Extract it into your open.mp server root.
-3. Drop the component file into your server's `components` folder.
+3. Copy the full release `components/` contents into your server's `components` folder (Linux: `mysql.so` + `libmariadb.so.3`, Windows: `mysql.dll` + `libmariadb.dll`).
 4. No `config.json` changes are required.
 
 ## Logging Configuration
