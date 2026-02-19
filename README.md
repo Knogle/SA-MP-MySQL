@@ -1,89 +1,102 @@
 # MySQL Component for open.mp
 
-| Travis CI | AppVeyor | Total downloads | Latest release |
-| :---: | :---: | :---: | :---: |
-|  [![Build Status](https://travis-ci.org/pBlueG/SA-MP-MySQL.svg?branch=master)](https://travis-ci.org/pBlueG/SA-MP-MySQL)   |  [![Build status](https://ci.appveyor.com/api/projects/status/xssdxu7wp8l3q2mk/branch/master?svg=true)](https://ci.appveyor.com/project/maddinat0r/sa-mp-mysql/branch/master)  |  [![All Releases](https://img.shields.io/github/downloads/pBlueG/SA-MP-MySQL/total.svg?maxAge=86400)](https://github.com/pBlueG/SA-MP-MySQL/releases)  |  [![latest release](https://img.shields.io/github/release/pBlueG/SA-MP-MySQL.svg?maxAge=86400)](https://github.com/pBlueG/SA-MP-MySQL/releases) <br> [![Github Releases](https://img.shields.io/github/downloads/pBlueG/SA-MP-MySQL/latest/total.svg?maxAge=86400)](https://github.com/pBlueG/SA-MP-MySQL/releases)  |
--------------------------------------------------
-*The well-known MySQL component for open.mp servers.*
+[![Build and Release](https://github.com/Knogle/SA-MP-MySQL/actions/workflows/ci.yml/badge.svg)](https://github.com/Knogle/SA-MP-MySQL/actions/workflows/ci.yml)
+[![Latest Release](https://img.shields.io/github/v/release/Knogle/SA-MP-MySQL?display_name=tag)](https://github.com/Knogle/SA-MP-MySQL/releases)
+[![Total Downloads](https://img.shields.io/github/downloads/Knogle/SA-MP-MySQL/total.svg)](https://github.com/Knogle/SA-MP-MySQL/releases)
+[![Latest Release Downloads](https://img.shields.io/github/downloads/Knogle/SA-MP-MySQL/latest/total.svg)](https://github.com/Knogle/SA-MP-MySQL/releases)
 
-**This component allows you to use MySQL in PAWN. It's currently being developed by [maddinat0r](https://github.com/maddinat0r).**
+The MySQL component for open.mp servers.
 
-How to install
---------------
-1. Extract the content of the downloaded archive into the root directory of your open.mp server.
-2. Edit the server configuration (*config.json*) and load the component:
-   - Windows: `"components": ["mysql"]`
-   - Linux: `"components": ["mysql"]`
+Current release: **R42**
 
-F.A.Q.
-------
-Q: *I get a* `version GLIBCXX_3.4.15' not found` *error (or similar). How can I solve this?*
-A: Update your system. If that still didn't work, you'll need to upgrade your Linux distribution to a version which provides the gcc 4.8 (or higher) compiler. For example, if you're on CentOS 6, which only has gcc 4.4, you'll need to upgrade to CentOS 7.
+Current maintainer: **[Knogle](https://github.com/Knogle)**
 
-Q: *I get a* `Failed (libmysqlclient_r.so.18: cannot open shared object file: No such file or directory)` *error, how do I fix this?*
-A: You don't have the MySQL client library installed. Install it through your package manager. Make sure you install the 32bit (i386, i686, etc) library, or else the plugin won't run.
+## R42 Highlights
 
-Q: *I can't install the required libmysqlclient library on my Linux distribution. What do I do now?*
-A: Use the `mysql_static.so` plugin file. It's statically linked to the libmysqlclient library.
+- Full GitHub Actions pipeline for **Linux and Windows** builds.
+- CI checks on **every push and pull request**.
+- Automated package creation and upload on **GitHub Release publish**.
+- Build and compatibility refresh for modern open.mp environments.
+- Removed old `samp-log-core`/logcore dependency; logging now uses open.mp core logging (`ICore::logLn`) directly.
 
-Q: *I get a* `Failed (plugins/mysql.so: symbol __cxa_pure_virtual, version libmysqlclient_18[...]` *error, is there any way to fix it?*
-A: That likely means that you are using a 64bit system and thus a 64bit libmysqlclient library. You'll have to either install the 32bit version of the MySQL client package or use the statically linked version of the plugin, the `mysql_static.so`.
+## Installation
 
-Q: *The plugin fails to load on Windows, how can I fix this?*
-A: You have to install these Microsoft C++ redistributables. You'll need the x86/32bit downloads.
-   - [2010 (x86)](http://www.microsoft.com/en-us/download/details.aspx?id=5555)
-   - [2010 SP1 (x86)](http://www.microsoft.com/en-us/download/details.aspx?id=8328)
-   - [2012 (x86)](http://www.microsoft.com/en-us/download/details.aspx?id=30679)
-   - [2015 (x86)](https://www.microsoft.com/en-US/download/details.aspx?id=48145)
+1. Download the latest release archive from the [Releases page](https://github.com/Knogle/SA-MP-MySQL/releases).
+2. Extract it into your open.mp server root.
+3. Ensure your `config.json` loads the component:
+   - `"components": ["mysql"]`
 
-Q: *I'm not on Windows 10 and the plugin still fails to load after installing all the redistributables. Is there a solution for this?*
-A: Download the [universal Windows CRT](https://www.microsoft.com/en-US/download/details.aspx?id=48234). Requirements for this:
- - Windows 8.1 and Windows Server 2012 R2: [KB2919355](https://support.microsoft.com/en-us/kb/2919355)
- - Windows 7 and Windows Server 2008 R2: [Service Pack 1](https://support.microsoft.com/en-us/kb/976932)
- - Windows Vista and Windows Server 2008: [Service Pack 2](https://support.microsoft.com/en-us/kb/948465)
+## Logging Configuration
 
-Q: *I get a ton of debug messages regarding connections even though I'm calling* `mysql_connect` *only once, why is that so?*
-A: That's because the plugin uses multiple direct database connections per connection handle. The number of direct connections (and thus the number of those log messages) is `2 + pool_size`.
+The component supports open.mp config-based logging toggles:
 
-Build instruction
----------------
-*Note*: By default the component builds as 32-bit (`-DFORCE_32_BIT=ON`). Disable this via `-DFORCE_32_BIT=OFF` if your environment provides compatible 64-bit dependencies.
+- `logging.mysql`
+- `logging.mysql_debug`
+- `logging.mysql_info`
+- `logging.mysql_warning`
+- `logging.mysql_error`
 
-### Dependency layout
-- Git submodules: `libs/sdk`, `libs/cmake`, `libs/fmt`, `libs/omp-sdk`, `tests/include/amx`
-- Vendored in this repository: `libs/boost`, `libs/mariadb-connector-c`
+## Build from Source
 
-### Linux (tested on Fedora 43, GCC 15)
-1. Install toolchain and CMake:
-   - `sudo dnf install cmake gcc gcc-c++ make ccache`
-2. Ensure 32-bit development runtime is available (`-m32` support).
-3. Clone and initialize submodules:
-   - `git clone <repo-url>`
-   - `cd SA-MP-MySQL`
-   - `git submodule update --init --recursive`
-4. Configure:
-   - `CCACHE_TEMPDIR=/tmp cmake -S . -B build -DFORCE_32_BIT=ON`
-5. Build:
-   - `CCACHE_TEMPDIR=/tmp cmake --build build -j$(nproc)`
-6. Result:
-   - Component: `build/src/mysql.so`
+### Repository setup
 
-### Notes
-- `libmariadb.so.3` is expected from `libs/mariadb-connector-c/lib32`.
-- If `ccache` fails with temp-dir permissions, keep using `CCACHE_TEMPDIR=/tmp` as above.
+```bash
+git clone https://github.com/Knogle/SA-MP-MySQL.git
+cd SA-MP-MySQL
+git submodule update --init --recursive
+```
 
-Thanks to
----------
-- AndreT (testing/several tutorials)
-- DamianC (testing reports)
-- IstuntmanI (testing)
-- JernejL (testing/suggestions)
-- Konstantinos (testing)
-- krisk (testing/suggestions)
-- kurta999 (testing)
-- Kye (coding support)
-- maddinat0r (developing the plugin as of R8)
-- Mow (compiling/testing/hosting)
-- nemesis (testing)
-- Sergei (testing/suggestions/wiki documentation)
-- xxmitsu (testing/compiling)
+### Linux
+
+Default build is 32-bit (`FORCE_32_BIT=ON`).
+
+```bash
+cmake -S . -B build -DFORCE_32_BIT=ON -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+cmake --build build --parallel
+```
+
+Output:
+
+- `build/src/mysql.so`
+
+### Windows (Visual Studio 2022, Win32)
+
+Install MariaDB Connector/C x86 (for example via vcpkg), then configure and build:
+
+```powershell
+cmake -S . -B build -G "Visual Studio 17 2022" -A Win32 -DMYSQLCAPI_ROOT_DIR="<path-to-mariadb-x86-root>"
+cmake --build build --config Release --parallel
+```
+
+Output:
+
+- `build/src/Release/mysql.dll`
+
+## CI/CD
+
+Workflow file: `.github/workflows/ci.yml`
+
+Triggers:
+
+- `push`
+- `pull_request`
+- `release` (`published`)
+- `workflow_dispatch`
+
+Release behavior:
+
+- Builds Linux and Windows artifacts.
+- Packages both builds via CPack.
+- Uploads packages automatically to the matching GitHub Release.
+
+## Compatibility
+
+- Runtime target: open.mp servers
+- SDK: open.mp SDK (submodule)
+- Bundled dependencies in repo:
+  - Boost headers
+  - MariaDB Connector/C (Linux)
+
+## Credits
+
+This project builds on the long work of the original SA-MP MySQL plugin contributors and maintainers.

@@ -1,29 +1,30 @@
 {
-    "user": "pBlueG",
+    "user": "Knogle",
     "repo": "SA-MP-MySQL",
     "resources": [
         {
-            "name": "^mysql-.+-([Dd]ebian[0-9]?|[Ll]inux)-static\\.tar\\.gz$",
+            "name": "^mysql-.+-[Ll]inux\\.tar\\.gz$",
             "platform": "linux",
             "archive": true,
             "includes": ["mysql-.+\\/pawno\\/include"],
-            "plugins": ["mysql-.+\\/plugins\\/mysql.so"]
+            "plugins": ["mysql-.+\\/components\\/mysql.so"]
         },
         {
-            "name": "^mysql-.+-win(32)?.zip$",
+            "name": "^mysql-.+-(win32|Win32|Windows)\\.zip$",
             "platform": "windows",
             "archive": true,
             "includes": ["mysql-.+\\/pawno\\/include"],
-            "plugins": ["mysql-.+\\/plugins\\/mysql.dll"],
+            "plugins": ["mysql-.+\\/components\\/mysql.dll"],
             "files": {
                 "mysql-.+\\/libmariadb.dll": "libmariadb.dll"
             }
         }
     ],
     "runtime": {
-        "plugins": ["pBlueG/SA-MP-MySQL"]
+        "plugins": ["Knogle/SA-MP-MySQL"]
     },
     "contributors": [
+        "Knogle",
         "AndreT",
         "DamianC",
         "IstuntmanI",

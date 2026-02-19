@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.19)
 project(mysql)
 
-set(MYSQL_PLUGIN_VERSION "R41-4")
+set(MYSQL_PLUGIN_VERSION "R42")
 
 option (BUILD_TESTS "Build tests" OFF)
 option (FORCE_32_BIT "Force 32-bit compilation on UNIX" ON)
