@@ -23,7 +23,9 @@ Current maintainer: **[Knogle](https://github.com/Knogle)**
 
 1. Download the latest release archive from the [Releases page](https://github.com/Knogle/SA-MP-MySQL/releases).
 2. Extract it into your open.mp server root.
-3. Copy the full release `components/` contents into your server's `components` folder (Linux: `mysql.so` + `libmariadb.so.3`, Windows: `mysql.dll` + `libmariadb.dll`).
+3. Copy the full release contents while preserving structure:
+   - `components/mysql.so` (Linux) or `components/mysql.dll` (Windows)
+   - `libmariadb.so.3` (Linux) or `libmariadb.dll` (Windows) in the server root
 4. No `config.json` changes are required.
 
 ## Logging Configuration
@@ -40,8 +42,8 @@ The component supports open.mp config-based logging toggles:
 
 `libmariadb.so.3` must be available for the Linux component at runtime (32-bit).
 
-If you use the official release archive, copy the full `components/` folder so the bundled
-`libmariadb.so.3` is present next to `mysql.so`.
+If you use the official release archive, keep the bundled `libmariadb.so.3` in the server root
+(`components/..`) and copy `mysql.so` to `components/`.
 
 If you build/deploy manually, install the 32-bit MariaDB connector library via your distro:
 

@@ -9,7 +9,7 @@
             "includes": ["mysql-.+\\/pawno\\/include"],
             "plugins": ["mysql-.+\\/components\\/mysql.so"],
             "files": {
-                "mysql-.+\\/components\\/libmariadb.so.3": "components/libmariadb.so.3"
+                "mysql-.+\\/libmariadb.so.3": "libmariadb.so.3"
             }
         },
         {
@@ -19,7 +19,7 @@
             "includes": ["mysql-.+\\/pawno\\/include"],
             "plugins": ["mysql-.+\\/components\\/mysql.dll"],
             "files": {
-                "mysql-.+\\/components\\/libmariadb.dll": "components/libmariadb.dll"
+                "mysql-.+\\/libmariadb.dll": "libmariadb.dll"
             }
         }
     ],

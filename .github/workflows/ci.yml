@@ -86,6 +86,32 @@ jobs:
         if: github.event_name == 'release' && runner.os == 'Windows'
         run: cmake --build build --config Release --target package --parallel
 
+      - name: Verify Linux package contents
+        if: github.event_name == 'release' && runner.os == 'Linux'
+        run: |
+          PKG="$(ls -1 build/*.tar.gz | head -n 1)"
+          test -n "$PKG"
+          tar -tzf "$PKG" | grep -E '^[^/]+/components/mysql\.so$'
+          tar -tzf "$PKG" | grep -E '^[^/]+/libmariadb\.so\.3$'
+
+      - name: Verify Windows package contents
+        if: github.event_name == 'release' && runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $pkg = Get-ChildItem build/*.zip | Select-Object -First 1
+          if (-not $pkg) { throw "No ZIP package found in build/" }
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $zip = [System.IO.Compression.ZipFile]::OpenRead($pkg.FullName)
+          try {
+            $entries = $zip.Entries | ForEach-Object { $_.FullName }
+            $hasMysqlDll = $entries | Where-Object { $_ -match '^[^/]+/components/mysql\.dll$' }
+            $hasMariaRootDll = $entries | Where-Object { $_ -match '^[^/]+/libmariadb\.dll$' }
+            if (-not $hasMysqlDll) { throw "Missing components/mysql.dll in package" }
+            if (-not $hasMariaRootDll) { throw "Missing root libmariadb.dll in package" }
+          } finally {
+            $zip.Dispose()
+          }
+
       - name: Upload package artifact
         if: github.event_name == 'release'
         uses: actions/upload-artifact@v4
