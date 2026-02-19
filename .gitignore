@@ -1,7 +1,7 @@
-[Bb]in/
-build/
-[Rr]elease/
-[Dd]ebug/
+/[Bb]in/
+/build/
+/[Rr]elease/
+/[Dd]ebug/
 
 #Linux
 *.o
