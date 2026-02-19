@@ -104,7 +104,7 @@ namespace
 {
 	class MySQLOmpComponent final : public IComponent, public CoreEventHandler, public PawnEventHandler
 	{
-		PROVIDE_UID(0x6d7973716c6f6d70);
+		PROVIDE_UID(0xE039676EBBD08F3C);
 
 	public:
 		StringView componentName() const override
