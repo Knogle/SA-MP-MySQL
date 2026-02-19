@@ -227,7 +227,7 @@ namespace
 			CCallbackManager::Get()->AddAmx(amx);
 
 			const int error = amx_Register(amx, native_list, -1);
-			if (error != AMX_ERR_NONE)
+			if (error != AMX_ERR_NONE && error != AMX_ERR_NOTFOUND)
 			{
 				core_->logLn(LogLevel::Error,
 					"component.mysql: amx_Register failed (error %d).",
