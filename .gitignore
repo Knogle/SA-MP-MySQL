@@ -10,6 +10,9 @@ build/
 *.swp
 __*/
 .*
+!.github/
+!.github/workflows/
+!.github/workflows/*.yml
 
 #Visual Studio
 *.sdf

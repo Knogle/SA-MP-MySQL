@@ -1,0 +1,111 @@
+name: Build and Release
+
+on:
+  push:
+  pull_request:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: linux
+            name: Linux (x86)
+            os: ubuntu-24.04
+            release_glob: build/*.tar.gz
+          - id: windows
+            name: Windows (Win32)
+            os: windows-2022
+            release_glob: build/*.zip
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Linux build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-multilib g++-multilib
+
+      - name: Install MariaDB Connector/C for Windows (x86)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $VcpkgRoot = "$env:RUNNER_TEMP\vcpkg"
+          git clone --depth 1 https://github.com/microsoft/vcpkg $VcpkgRoot
+          & "$VcpkgRoot\bootstrap-vcpkg.bat" -disableMetrics
+          & "$VcpkgRoot\vcpkg.exe" install libmariadb:x86-windows
+          "VCPKG_INSTALLED=$VcpkgRoot\installed\x86-windows" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Configure (Linux)
+        if: runner.os == 'Linux'
+        run: >
+          cmake -S . -B build
+          -DCMAKE_BUILD_TYPE=Release
+          -DFORCE_32_BIT=ON
+          -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+
+      - name: Configure (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          cmake -S . -B build -G "Visual Studio 17 2022" -A Win32 `
+            -DMYSQLCAPI_INCLUDE_DIR="$env:VCPKG_INSTALLED\include" `
+            -DMYSQLCAPI_LIBRARY="$env:VCPKG_INSTALLED\lib\libmariadb.lib" `
+            -DMYSQLCAPI_LIBRARY_SHARED="$env:VCPKG_INSTALLED\bin\libmariadb.dll"
+
+      - name: Build (Linux)
+        if: runner.os == 'Linux'
+        run: cmake --build build --parallel
+
+      - name: Build (Windows)
+        if: runner.os == 'Windows'
+        run: cmake --build build --config Release --parallel
+
+      - name: Package (Linux release only)
+        if: github.event_name == 'release' && runner.os == 'Linux'
+        run: cmake --build build --target package --parallel
+
+      - name: Package (Windows release only)
+        if: github.event_name == 'release' && runner.os == 'Windows'
+        run: cmake --build build --config Release --target package --parallel
+
+      - name: Upload package artifact
+        if: github.event_name == 'release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.id }}
+          path: ${{ matrix.release_glob }}
+          if-no-files-found: error
+
+  upload-release-assets:
+    name: Upload release assets
+    if: github.event_name == 'release'
+    runs-on: ubuntu-24.04
+    needs: build
+    permissions:
+      contents: write
+    steps:
+      - name: Download packaged artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          path: release-assets
+          merge-multiple: true
+
+      - name: Upload assets to GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-assets/*
+          fail_on_unmatched_files: true
