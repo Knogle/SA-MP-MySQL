@@ -51,7 +51,7 @@ Build instruction
 
 ### Dependency layout
 - Git submodules: `libs/sdk`, `libs/cmake`, `libs/fmt`, `libs/omp-sdk`, `tests/include/amx`
-- Vendored in this repository: `libs/samp-log-core`, `libs/yaml-cpp`, `libs/boost`, `libs/mariadb-connector-c`
+- Vendored in this repository: `libs/boost`, `libs/mariadb-connector-c`
 
 ### Linux (tested on Fedora 43, GCC 15)
 1. Install toolchain and CMake:
@@ -67,7 +67,6 @@ Build instruction
    - `CCACHE_TEMPDIR=/tmp cmake --build build -j$(nproc)`
 6. Result:
    - Component: `build/src/mysql.so`
-   - Log runtime: `build/libs/samp-log-core/src/log-core2.so`
 
 ### Notes
 - `libmariadb.so.3` is expected from `libs/mariadb-connector-c/lib32`.

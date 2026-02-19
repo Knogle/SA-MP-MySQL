@@ -61,10 +61,8 @@ set_target_properties(mysql PROPERTIES PREFIX "")
 target_include_directories(mysql PRIVATE
 	${SAMPSDK_INCLUDE_DIR}
 	${MYSQL_PLUGIN_CONFIG_INCLUDE_DIR}
-	${PROJECT_SOURCE_DIR}/libs/samp-log-core/include
 	${Boost_INCLUDE_DIR}
 	${MYSQLCAPI_INCLUDE_DIR}
-	${LOGCORE_INCLUDE_DIR}
 )
 
 target_compile_features(mysql PUBLIC
@@ -90,7 +88,7 @@ target_compile_features(mysql PUBLIC
 	cxx_variadic_templates
 )
 
-add_dependencies(mysql log-core fmt)
+add_dependencies(mysql fmt)
 
 if(MSVC)
 	target_compile_definitions(mysql PRIVATE
@@ -104,7 +102,6 @@ endif()
 
 target_link_libraries(mysql PRIVATE
 	OMP-SDK
-	log-core
 	fmt
 )
 
@@ -124,7 +121,6 @@ else()
 endif()
 
 install(TARGETS mysql DESTINATION "components/")
-install(FILES "$<TARGET_FILE:log-core>" DESTINATION "./")
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/a_mysql.inc" DESTINATION "pawno/include/")
 install(FILES "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION "./")
 if(WIN32 AND MYSQLCAPI_LIBRARY_SHARED)

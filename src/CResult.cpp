@@ -75,7 +75,7 @@ ResultSet_t CResultSet::Create(MYSQL *connection,
 							   default_clock::duration &exec_time,
 							   string query_str)
 {
-	CLog::Get()->Log(LogLevel::DEBUG,
+	CLog::Get()->Log(MySQLLogLevel::DEBUG,
 					 "CResultSet::Create(connection={}, query_str='{}')",
 					 static_cast<const void *>(connection), query_str);
 
@@ -84,14 +84,14 @@ ResultSet_t CResultSet::Create(MYSQL *connection,
 
 
 	ResultSet_t resultset = ResultSet_t(new CResultSet);
-	CLog::Get()->Log(LogLevel::DEBUG, "created new resultset '{}'",
+	CLog::Get()->Log(MySQLLogLevel::DEBUG, "created new resultset '{}'",
 					 static_cast<const void *>(resultset.get()));
 	bool error = false;
 	MYSQL_RES *raw_result = nullptr;
 	do
 	{
 		raw_result = mysql_store_result(connection);
-		CLog::Get()->Log(LogLevel::DEBUG, "fetched MySQL result '{}'",
+		CLog::Get()->Log(MySQLLogLevel::DEBUG, "fetched MySQL result '{}'",
 						 static_cast<const void*>(raw_result));
 
 		if (raw_result == nullptr) //result empty: non-SELECT-type query or error
@@ -155,7 +155,7 @@ ResultSet_t CResultSet::Create(MYSQL *connection,
 				break;
 			}
 
-			CLog::Get()->Log(LogLevel::DEBUG,
+			CLog::Get()->Log(MySQLLogLevel::DEBUG,
 							 "allocated {} bytes for PAWN result", mem_size);
 
 			char **mem_offset = reinterpret_cast<char **>(&mem_data[num_rows]);

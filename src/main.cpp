@@ -1,6 +1,5 @@
 #include <sdk.hpp>
 #include <Server/Components/Pawn/pawn.hpp>
-#include <samplog/Api.hpp>
 
 #include "amx_sdk.hpp"
 #include "natives.hpp"
@@ -10,6 +9,7 @@
 #include "CDispatcher.hpp"
 #include "COptions.hpp"
 #include "COrm.hpp"
+#include "CLog.hpp"
 #include "plugin_runtime.hpp"
 #include "version.hpp"
 
@@ -120,6 +120,7 @@ namespace
 		void onLoad(ICore *core) override
 		{
 			core_ = core;
+			CLog::Get()->SetCore(core_);
 			if (mysql_library_init(0, nullptr, nullptr) != 0)
 			{
 				core_->logLn(LogLevel::Error,
@@ -172,6 +173,7 @@ namespace
 			(void)now;
 			if (mysql_initialized_)
 			{
+				CLog::Get()->Flush();
 				CDispatcher::Get()->Process();
 			}
 		}
@@ -222,7 +224,6 @@ namespace
 				return;
 			}
 
-			samplog::Api::Get()->RegisterAmx(amx);
 			CCallbackManager::Get()->AddAmx(amx);
 
 			const int error = amx_Register(amx, native_list, -1);
@@ -242,7 +243,6 @@ namespace
 				return;
 			}
 
-			samplog::Api::Get()->EraseAmx(amx);
 			CCallbackManager::Get()->RemoveAmx(amx);
 		}
 
@@ -272,6 +272,7 @@ namespace
 				core_->printLn("component.mysql: Unloading component...");
 			}
 
+			CLog::Get()->Flush();
 			DestroyPluginRuntime();
 
 			mysql_library_end();

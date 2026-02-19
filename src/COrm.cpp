@@ -20,7 +20,7 @@ const string COrm::ModuleName{ "orm" };
 
 bool COrm::Variable::GetValueAsString(string &dest, Handle_t handle_escape)
 {
-	CLog::Get()->Log(LogLevel::DEBUG,
+	CLog::Get()->Log(MySQLLogLevel::DEBUG,
 					 "COrm::Variable::GetValueAsString(this={}, handle={})",
 					 static_cast<const void *>(this),
 					 static_cast<const void *>(handle_escape));
@@ -52,7 +52,7 @@ bool COrm::Variable::GetValueAsString(string &dest, Handle_t handle_escape)
 
 void COrm::Variable::SetValue(const char *value)
 {
-	CLog::Get()->Log(LogLevel::DEBUG,
+	CLog::Get()->Log(MySQLLogLevel::DEBUG,
 					 "COrm::Variable::SetValue(this={}, value='{}')",
 					 static_cast<const void *>(this), value ? value : "(nullptr)");
 
@@ -77,7 +77,7 @@ void COrm::Variable::SetValue(const char *value)
 CError<COrm> COrm::AddVariable(Variable::Type type,
 							   const char *name, cell *var_addr, size_t var_maxlen)
 {
-	CLog::Get()->Log(LogLevel::DEBUG,
+	CLog::Get()->Log(MySQLLogLevel::DEBUG,
 		"COrm::AddVariable(this={}, type={}, name='{}', var_addr={}, var_maxlen={})",
 		static_cast<const void *>(this),
 		static_cast<std::underlying_type<decltype(type)>::type>(type),
@@ -117,7 +117,7 @@ CError<COrm> COrm::AddVariable(Variable::Type type,
 
 CError<COrm> COrm::RemoveVariable(const char *name)
 {
-	CLog::Get()->Log(LogLevel::DEBUG, "COrm::RemoveVariable(this={}, name='{}')",
+	CLog::Get()->Log(MySQLLogLevel::DEBUG, "COrm::RemoveVariable(this={}, name='{}')",
 					 static_cast<const void *>(this), name ? name : "(nullptr)");
 
 	if (name == nullptr || strlen(name) == 0)
@@ -145,7 +145,7 @@ CError<COrm> COrm::RemoveVariable(const char *name)
 
 void COrm::ClearAllVariables()
 {
-	CLog::Get()->Log(LogLevel::DEBUG, "COrm::ClearAllVariables(this={})",
+	CLog::Get()->Log(MySQLLogLevel::DEBUG, "COrm::ClearAllVariables(this={})",
 					 static_cast<const void *>(this));
 
 	for (auto &v : m_Variables)
@@ -156,7 +156,7 @@ void COrm::ClearAllVariables()
 
 CError<COrm> COrm::SetKeyVariable(const char *name)
 {
-	CLog::Get()->Log(LogLevel::DEBUG, "COrm::SetKeyVariable(this={}, name='{}')",
+	CLog::Get()->Log(MySQLLogLevel::DEBUG, "COrm::SetKeyVariable(this={}, name='{}')",
 					 static_cast<const void *>(this), name ? name : "(nullptr)");
 
 	if (name == nullptr || strlen(name) == 0)
@@ -182,7 +182,7 @@ CError<COrm> COrm::SetKeyVariable(const char *name)
 
 CError<COrm> COrm::GenerateQuery(COrm::QueryType type, string &dest)
 {
-	CLog::Get()->Log(LogLevel::DEBUG, "COrm::GenerateQuery(this={}, type={})",
+	CLog::Get()->Log(MySQLLogLevel::DEBUG, "COrm::GenerateQuery(this={}, type={})",
 					 static_cast<const void *>(this),
 					 static_cast<std::underlying_type<decltype(type)>::type>(type));
 
@@ -202,7 +202,7 @@ CError<COrm> COrm::GenerateQuery(COrm::QueryType type, string &dest)
 
 COrm::QueryType COrm::GetSaveQueryType()
 {
-	CLog::Get()->Log(LogLevel::DEBUG, "COrm::GetSaveQueryType(this={})",
+	CLog::Get()->Log(MySQLLogLevel::DEBUG, "COrm::GetSaveQueryType(this={})",
 					 static_cast<const void *>(this));
 
 	if (m_KeyVariable && m_KeyVariable.GetValueAsCell() != 0) //works for integer and strings
@@ -212,7 +212,7 @@ COrm::QueryType COrm::GetSaveQueryType()
 
 CError<COrm> COrm::GenerateSelectQuery(string &dest)
 {
-	CLog::Get()->Log(LogLevel::DEBUG, "COrm::GenerateSelectQuery(this={})",
+	CLog::Get()->Log(MySQLLogLevel::DEBUG, "COrm::GenerateSelectQuery(this={})",
 					 static_cast<const void *>(this));
 
 	if (m_Variables.empty())
@@ -253,7 +253,7 @@ CError<COrm> COrm::GenerateSelectQuery(string &dest)
 
 CError<COrm> COrm::GenerateUpdateQuery(string &dest)
 {
-	CLog::Get()->Log(LogLevel::DEBUG, "COrm::GenerateUpdateQuery(this={})",
+	CLog::Get()->Log(MySQLLogLevel::DEBUG, "COrm::GenerateUpdateQuery(this={})",
 					 static_cast<const void *>(this));
 
 	if (m_Variables.empty())
@@ -310,7 +310,7 @@ CError<COrm> COrm::GenerateUpdateQuery(string &dest)
 
 CError<COrm> COrm::GenerateInsertQuery(string &dest)
 {
-	CLog::Get()->Log(LogLevel::DEBUG, "COrm::GenerateInsertQuery(this={})",
+	CLog::Get()->Log(MySQLLogLevel::DEBUG, "COrm::GenerateInsertQuery(this={})",
 					 static_cast<const void *>(this));
 
 	if (m_Variables.empty())
@@ -353,7 +353,7 @@ CError<COrm> COrm::GenerateInsertQuery(string &dest)
 
 CError<COrm> COrm::GenerateDeleteQuery(string &dest)
 {
-	CLog::Get()->Log(LogLevel::DEBUG, "COrm::GenerateDeleteQuery(this={})",
+	CLog::Get()->Log(MySQLLogLevel::DEBUG, "COrm::GenerateDeleteQuery(this={})",
 					 static_cast<const void *>(this));
 
 	if (!m_KeyVariable)
@@ -380,7 +380,7 @@ CError<COrm> COrm::GenerateDeleteQuery(string &dest)
 
 void COrm::ApplyResult(const Result_t result, unsigned int rowidx /*= 0*/)
 {
-	CLog::Get()->Log(LogLevel::DEBUG,
+	CLog::Get()->Log(MySQLLogLevel::DEBUG,
 					 "COrm::ApplyResult(this={}, result={}, rowidx={})",
 					 static_cast<const void *>(this),
 					 static_cast<const void *>(result), rowidx);
@@ -409,7 +409,7 @@ void COrm::ApplyResult(const Result_t result, unsigned int rowidx /*= 0*/)
 		}
 		else
 		{
-			CLog::Get()->Log(LogLevel::WARNING,
+			CLog::Get()->Log(MySQLLogLevel::WARNING,
 							 "COrm::ApplyResult - no data to apply to " \
 							 "variable linked with field '{}'", var.GetName());
 		}
@@ -419,7 +419,7 @@ void COrm::ApplyResult(const Result_t result, unsigned int rowidx /*= 0*/)
 
 bool COrm::ApplyResultByName(const Result_t result, unsigned int rowidx /*= 0*/)
 {
-	CLog::Get()->Log(LogLevel::DEBUG, "COrm::ApplyResultByName(this={}, result={}, rowidx={})",
+	CLog::Get()->Log(MySQLLogLevel::DEBUG, "COrm::ApplyResultByName(this={}, result={}, rowidx={})",
 					 static_cast<const void *>(this),
 					 static_cast<const void *>(result), rowidx);
 
@@ -435,7 +435,7 @@ bool COrm::ApplyResultByName(const Result_t result, unsigned int rowidx /*= 0*/)
 		}
 		else
 		{
-			CLog::Get()->Log(LogLevel::WARNING,
+			CLog::Get()->Log(MySQLLogLevel::WARNING,
 							 "COrm::ApplyResultByName - no data to apply to " \
 							 "key variable linked with field '{}'",
 							 m_KeyVariable.GetName());
@@ -450,7 +450,7 @@ bool COrm::ApplyResultByName(const Result_t result, unsigned int rowidx /*= 0*/)
 		}
 		else
 		{
-			CLog::Get()->Log(LogLevel::WARNING,
+			CLog::Get()->Log(MySQLLogLevel::WARNING,
 							 "COrm::ApplyResultByName - no data to apply to " \
 							 "variable linked with field '{}'",
 							 v.GetName());
@@ -461,24 +461,24 @@ bool COrm::ApplyResultByName(const Result_t result, unsigned int rowidx /*= 0*/)
 
 bool COrm::UpdateKeyValue(const Result_t result)
 {
-	CLog::Get()->Log(LogLevel::DEBUG, "COrm::UpdateKeyValue(this={}, result={})",
+	CLog::Get()->Log(MySQLLogLevel::DEBUG, "COrm::UpdateKeyValue(this={}, result={})",
 					 static_cast<const void *>(this), static_cast<const void *>(result));
 
 	if (result == nullptr)
 	{
-		CLog::Get()->Log(LogLevel::ERROR, "COrm::UpdateKeyValue - no result");
+		CLog::Get()->Log(MySQLLogLevel::ERROR, "COrm::UpdateKeyValue - no result");
 		return false;
 	}
 
 	if (result->InsertId() == 0)
 	{
-		CLog::Get()->Log(LogLevel::ERROR, "COrm::UpdateKeyValue - inserted id is zero");
+		CLog::Get()->Log(MySQLLogLevel::ERROR, "COrm::UpdateKeyValue - inserted id is zero");
 		return false;
 	}
 
 	if (!m_KeyVariable)
 	{
-		CLog::Get()->Log(LogLevel::ERROR,
+		CLog::Get()->Log(MySQLLogLevel::ERROR,
 						 "COrm::UpdateKeyValue - no key variable registered");
 		return false;
 	}
@@ -489,7 +489,7 @@ bool COrm::UpdateKeyValue(const Result_t result)
 
 void COrm::WriteVariableNamesAsList(string &writer)
 {
-	CLog::Get()->Log(LogLevel::DEBUG, "COrm::WriteVariableNamesAsList(this={})",
+	CLog::Get()->Log(MySQLLogLevel::DEBUG, "COrm::WriteVariableNamesAsList(this={})",
 					 static_cast<const void *>(this));
 
 	writer += '`';
@@ -506,7 +506,7 @@ void COrm::WriteVariableNamesAsList(string &writer)
 OrmId_t COrmManager::Create(HandleId_t handleid, const char *table,
 							CError<COrm> &error)
 {
-	CLog::Get()->Log(LogLevel::DEBUG,
+	CLog::Get()->Log(MySQLLogLevel::DEBUG,
 					 "COrmManager::Create(handleid={}, table='{}')",
 					 handleid, table ? table : "(nullptr)");
 

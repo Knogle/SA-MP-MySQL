@@ -11,7 +11,7 @@ Callback_t CCallback::Create(AMX *amx, const char *name, const char *format,
 							 cell *params, cell param_offset,
 							 CError<CCallback> &error)
 {
-	CLog::Get()->Log(LogLevel::DEBUG,
+	CLog::Get()->Log(MySQLLogLevel::DEBUG,
 					 "CCallback::Create(amx={}, name='{}', format='{}', params={}, param_offset={})",
 					 static_cast<const void *>(amx),
 					 name ? name : "(nullptr)",
@@ -43,7 +43,7 @@ Callback_t CCallback::Create(AMX *amx, const char *name, const char *format,
 		return nullptr;
 	}
 
-	CLog::Get()->Log(LogLevel::DEBUG,
+	CLog::Get()->Log(MySQLLogLevel::DEBUG,
 					 "CCallback::Create - callback index for '{}': {}",
 					 name, cb_idx);
 
@@ -73,7 +73,7 @@ Callback_t CCallback::Create(AMX *amx, const char *name, const char *format,
 				return nullptr;
 			}
 
-			CLog::Get()->Log(LogLevel::DEBUG,
+			CLog::Get()->Log(MySQLLogLevel::DEBUG,
 							 "processing specifier '{}' with parameter index {}",
 							 *format, param_idx);
 
@@ -86,7 +86,7 @@ Callback_t CCallback::Create(AMX *amx, const char *name, const char *format,
 					cell value = *address_ptr;
 					if (array_addr_ptr != nullptr)
 					{
-						CLog::Get()->Log(LogLevel::DEBUG, "expecting array size");
+						CLog::Get()->Log(MySQLLogLevel::DEBUG, "expecting array size");
 						if (value <= 0)
 						{
 							error.set(Error::INVALID_ARRAY_SIZE,
@@ -101,12 +101,12 @@ Callback_t CCallback::Create(AMX *amx, const char *name, const char *format,
 							std::make_tuple(
 								'a', std::make_tuple(
 									copied_array, value)));
-						CLog::Get()->Log(LogLevel::DEBUG, "pushed array");
+						CLog::Get()->Log(MySQLLogLevel::DEBUG, "pushed array");
 						array_addr_ptr = nullptr;
 					}
 
 					param_list.push_front(std::make_tuple('c', value));
-					CLog::Get()->Log(LogLevel::DEBUG,
+					CLog::Get()->Log(MySQLLogLevel::DEBUG,
 									 "retrieved and pushed value '{}'", value);
 				}
 				break;
@@ -114,7 +114,7 @@ Callback_t CCallback::Create(AMX *amx, const char *name, const char *format,
 				case 'b': //bool
 					amx_GetAddr(amx, params[param_offset + param_idx], &address_ptr);
 					param_list.push_front(std::make_tuple('c', *address_ptr));
-					CLog::Get()->Log(LogLevel::DEBUG,
+					CLog::Get()->Log(MySQLLogLevel::DEBUG,
 									 "retrieved and pushed value '{}'", *address_ptr);
 					break;
 				case 's': //string
@@ -122,18 +122,18 @@ Callback_t CCallback::Create(AMX *amx, const char *name, const char *format,
 					const char *str = nullptr;
 					amx_StrParam(amx, params[param_offset + param_idx], str);
 					param_list.push_front(std::make_tuple('s', string(str ? str : "")));
-					CLog::Get()->Log(LogLevel::DEBUG, "retrieved and pushed value '{}'", str ? str : "");
+					CLog::Get()->Log(MySQLLogLevel::DEBUG, "retrieved and pushed value '{}'", str ? str : "");
 				}
 				break;
 				case 'a': //array
 					amx_GetAddr(amx, params[param_offset + param_idx], &array_addr_ptr);
-					CLog::Get()->Log(LogLevel::DEBUG, "retrieved array '{}'",
+					CLog::Get()->Log(MySQLLogLevel::DEBUG, "retrieved array '{}'",
 									 static_cast<const void*>(array_addr_ptr));
 					break;
 				case 'r': //reference
 					amx_GetAddr(amx, params[param_offset + param_idx], &address_ptr);
 					param_list.push_front(std::make_tuple('r', address_ptr));
-					CLog::Get()->Log(LogLevel::DEBUG, "retrieved and pushed reference '{}'",
+					CLog::Get()->Log(MySQLLogLevel::DEBUG, "retrieved and pushed reference '{}'",
 									 static_cast<const void*>(array_addr_ptr));
 					break;
 				default:
@@ -153,9 +153,9 @@ Callback_t CCallback::Create(AMX *amx, const char *name, const char *format,
 		}
 	}
 
-	CLog::Get()->Log(LogLevel::INFO,
+	CLog::Get()->Log(MySQLLogLevel::INFO,
 					 "Callback '{}' set up for delayed execution.", name);
-	CLog::Get()->Log(LogLevel::DEBUG,
+	CLog::Get()->Log(MySQLLogLevel::DEBUG,
 					 "created delayed callback with {} parameter{}",
 					 param_list.size(), param_list.size() > 1 ? "s" : "");
 	return std::make_shared<CCallback>(amx, cb_idx, std::move(param_list));
@@ -164,7 +164,7 @@ Callback_t CCallback::Create(AMX *amx, const char *name, const char *format,
 Callback_t CCallback::Create(CError<CCallback> &error, AMX *amx,
 							 const char *name, const char *format, ...)
 {
-	CLog::Get()->Log(LogLevel::DEBUG,
+	CLog::Get()->Log(MySQLLogLevel::DEBUG,
 					 "CCallback::Create(amx={}, name='{}', format='{})",
 					 static_cast<const void *>(amx),
 					 name ? name : "(nullptr)",
@@ -189,7 +189,7 @@ Callback_t CCallback::Create(CError<CCallback> &error, AMX *amx,
 		return nullptr;
 	}
 
-	CLog::Get()->Log(LogLevel::DEBUG,
+	CLog::Get()->Log(MySQLLogLevel::DEBUG,
 					 "CCallback::Create - callback index for '{}': {}",
 					 name, cb_idx);
 
@@ -203,7 +203,7 @@ Callback_t CCallback::Create(CError<CCallback> &error, AMX *amx,
 
 		for (; *format != '\0'; ++format)
 		{
-			CLog::Get()->Log(LogLevel::DEBUG,
+			CLog::Get()->Log(MySQLLogLevel::DEBUG,
 							 "processing specifier '{}'", *format);
 
 			switch (*format)
@@ -214,7 +214,7 @@ Callback_t CCallback::Create(CError<CCallback> &error, AMX *amx,
 				{
 					cell value = va_arg(args, cell);
 					param_list.push_front(std::make_tuple('c', value));
-					CLog::Get()->Log(LogLevel::DEBUG,
+					CLog::Get()->Log(MySQLLogLevel::DEBUG,
 									 "retrieved and pushed value '{}'", value);
 				}
 				break;
@@ -222,7 +222,7 @@ Callback_t CCallback::Create(CError<CCallback> &error, AMX *amx,
 				{
 					float float_value = static_cast<float>(va_arg(args, double));
 					param_list.push_front(std::make_tuple('c', amx_ftoc(float_value)));
-					CLog::Get()->Log(LogLevel::DEBUG,
+					CLog::Get()->Log(MySQLLogLevel::DEBUG,
 									 "retrieved and pushed value '{}'", float_value);
 				}
 				break;
@@ -230,7 +230,7 @@ Callback_t CCallback::Create(CError<CCallback> &error, AMX *amx,
 				{
 					const char *value = va_arg(args, const char*);
 					param_list.push_front(std::make_tuple('s', string(value)));
-					CLog::Get()->Log(LogLevel::DEBUG,
+					CLog::Get()->Log(MySQLLogLevel::DEBUG,
 									 "retrieved and pushed value '{}'", value);
 				}
 				break;
@@ -251,9 +251,9 @@ Callback_t CCallback::Create(CError<CCallback> &error, AMX *amx,
 		return nullptr;
 	}
 
-	CLog::Get()->Log(LogLevel::INFO,
+	CLog::Get()->Log(MySQLLogLevel::INFO,
 					 "Callback '{}' set up for delayed execution.", name);
-	CLog::Get()->Log(LogLevel::DEBUG,
+	CLog::Get()->Log(MySQLLogLevel::DEBUG,
 					 "created delayed callback with {} parameter{}",
 					 param_list.size(), param_list.size() > 1 ? "s" : "");
 
@@ -263,7 +263,7 @@ Callback_t CCallback::Create(CError<CCallback> &error, AMX *amx,
 
 bool CCallback::Execute()
 {
-	CLog::Get()->Log(LogLevel::DEBUG,
+	CLog::Get()->Log(MySQLLogLevel::DEBUG,
 					 "CCallback::Execute(amx={}, index={}, num_params={})",
 					 static_cast<const void *>(m_AmxInstance),
 					 m_AmxCallbackIndex, m_Params.size());
@@ -272,17 +272,17 @@ bool CCallback::Execute()
 	//execution, so we better check if the AMX instance is still valid
 	if (CCallbackManager::Get()->IsValidAmx(m_AmxInstance) == false)
 	{
-		CLog::Get()->Log(LogLevel::ERROR,
+		CLog::Get()->Log(MySQLLogLevel::ERROR,
 						 "CCallback::Execute - invalid AMX instance");
 		return false;
 	}
 
-	if (CLog::Get()->IsLogLevel(LogLevel::INFO))
+	if (CLog::Get()->IsLogLevel(MySQLLogLevel::INFO))
 	{
 		char callback_name[sNAMEMAX + 1];
 		if (amx_GetPublic(m_AmxInstance, m_AmxCallbackIndex, callback_name) == AMX_ERR_NONE)
 		{
-			CLog::Get()->Log(LogLevel::INFO,
+			CLog::Get()->Log(MySQLLogLevel::INFO,
 							 "Executing callback '{}' with {} parameter{}...",
 							 callback_name, m_Params.size(), m_Params.size() > 1 ? "s" : "");
 		}
@@ -295,7 +295,7 @@ bool CCallback::Execute()
 		boost::any &param_val = std::get<1>(i);
 		char specifier = std::get<0>(i);
 
-		CLog::Get()->Log(LogLevel::DEBUG,
+		CLog::Get()->Log(MySQLLogLevel::DEBUG,
 						 "processing internal specifier '{}'", specifier);
 		switch (specifier)
 		{
@@ -304,7 +304,7 @@ bool CCallback::Execute()
 				const cell value = boost::any_cast<cell>(param_val);
 				amx_Push(m_AmxInstance, value);
 
-				CLog::Get()->Log(LogLevel::DEBUG,
+				CLog::Get()->Log(MySQLLogLevel::DEBUG,
 								 "pushed value '{}' onto AMX stack", value);
 			}
 			break;
@@ -314,7 +314,7 @@ bool CCallback::Execute()
 				amx_PushString(m_AmxInstance, &tmp_addr, nullptr,
 							   value.c_str(), 0, 0);
 
-				CLog::Get()->Log(LogLevel::DEBUG,
+				CLog::Get()->Log(MySQLLogLevel::DEBUG,
 								 "pushed value '{}' onto AMX stack", value);
 
 				if (amx_address < 0)
@@ -329,7 +329,7 @@ bool CCallback::Execute()
 				amx_PushArray(m_AmxInstance, &tmp_addr, nullptr, array_addr, array_size);
 				free(array_addr);
 
-				CLog::Get()->Log(LogLevel::DEBUG,
+				CLog::Get()->Log(MySQLLogLevel::DEBUG,
 								 "pushed array '{}' with size '{}' onto AMX stack",
 								 static_cast<const void*>(array_addr), array_size);
 
@@ -342,7 +342,7 @@ bool CCallback::Execute()
 				cell * const value = boost::any_cast<cell *>(param_val);
 				amx_PushAddress(m_AmxInstance, value);
 
-				CLog::Get()->Log(LogLevel::DEBUG,
+				CLog::Get()->Log(MySQLLogLevel::DEBUG,
 								 "pushed reference '{}' onto AMX stack",
 								 static_cast<const void*>(value));
 			}
@@ -350,20 +350,20 @@ bool CCallback::Execute()
 		}
 	}
 
-	CLog::Get()->Log(LogLevel::DEBUG,
+	CLog::Get()->Log(MySQLLogLevel::DEBUG,
 					 "executing AMX callback with index '{}'",
 					 m_AmxCallbackIndex);
 
 	int error = amx_Exec(m_AmxInstance, nullptr, m_AmxCallbackIndex);
 
-	CLog::Get()->Log(LogLevel::DEBUG,
+	CLog::Get()->Log(MySQLLogLevel::DEBUG,
 					 "AMX callback executed with error '{}'",
 					 error);
 
 	if (amx_address >= 0)
 		amx_Release(m_AmxInstance, amx_address);
 
-	CLog::Get()->Log(LogLevel::INFO, "Callback successfully executed.");
+	CLog::Get()->Log(MySQLLogLevel::INFO, "Callback successfully executed.");
 
 	return true;
 }

@@ -1,14 +1,54 @@
 #pragma once
 
-#include <samplog/samplog.hpp>
 #include "CSingleton.hpp"
 #include "CError.hpp"
 
 #include <fmt/format.h>
+#include <amx/amx.h>
 
-using samplog::PluginLogger_t;
-using samplog::LogLevel;
-using samplog::AmxFuncCallInfo;
+#include <string>
+#include <cstdint>
+#include <mutex>
+#include <utility>
+#include <vector>
+
+using std::string;
+
+struct ICore;
+
+enum class MySQLLogLevel : unsigned int
+{
+	NONE = 0,
+	DEBUG = 1,
+	INFO = 2,
+	WARNING = 4,
+	ERROR = 8,
+};
+
+inline MySQLLogLevel operator|(MySQLLogLevel lhs, MySQLLogLevel rhs)
+{
+	return static_cast<MySQLLogLevel>(
+		static_cast<unsigned int>(lhs) | static_cast<unsigned int>(rhs));
+}
+
+inline MySQLLogLevel &operator|=(MySQLLogLevel &lhs, MySQLLogLevel rhs)
+{
+	lhs = lhs | rhs;
+	return lhs;
+}
+
+inline bool HasLogLevel(unsigned int level_mask, MySQLLogLevel level)
+{
+	return (level_mask & static_cast<unsigned int>(level))
+		== static_cast<unsigned int>(level);
+}
+
+struct AmxFuncCallInfo
+{
+	int line = 0;
+	const char *file = nullptr;
+	const char *function = nullptr;
+};
 
 
 class CDebugInfoManager : public CSingleton<CDebugInfoManager>
@@ -55,19 +95,34 @@ class CLog : public CSingleton<CLog>
 	friend class CSingleton<CLog>;
 	friend class CScopedDebugInfo;
 private:
-	CLog() :
-		m_Logger("mysql")
-	{ }
-	~CLog() = default;
+	struct PendingLogEntry
+	{
+		MySQLLogLevel level = MySQLLogLevel::NONE;
+		string message;
+	};
+
+	CLog() = default;
+	~CLog();
 
 public:
-	inline bool IsLogLevel(LogLevel level)
+	bool IsLogLevel(MySQLLogLevel level);
+
+	void SetCore(ICore *core);
+	void ConfigureFromCore();
+	void Flush();
+
+private:
+	void Enqueue(MySQLLogLevel level, string &&message);
+	void Emit(MySQLLogLevel level, const string &message);
+
+public:
+	inline bool IsLogLevelFast(MySQLLogLevel level)
 	{
-		return m_Logger.IsLogLevel(level);
+		return HasLogLevel(m_LogMask, level);
 	}
 
 	template<typename... Args>
-	inline void Log(LogLevel level, const char *format, Args &&...args)
+	inline void Log(MySQLLogLevel level, const char *format, Args &&...args)
 	{
 		if (!IsLogLevel(level))
 			return;
@@ -76,11 +131,12 @@ public:
 		if (sizeof...(args) != 0)
 			str = fmt::format(format, std::forward<Args>(args)...);
 
-		m_Logger.Log(level, str.c_str());
+		Enqueue(level, std::move(str));
 	}
 
 	template<typename... Args>
-	inline void Log(LogLevel level, std::vector<AmxFuncCallInfo> const &callinfo,
+	inline void Log(MySQLLogLevel level,
+					std::vector<AmxFuncCallInfo> const &callinfo,
 					const char *format, Args &&...args)
 	{
 		if (!IsLogLevel(level))
@@ -90,12 +146,28 @@ public:
 		if (sizeof...(args) != 0)
 			str = fmt::format(format, std::forward<Args>(args)...);
 
-		m_Logger.Log(level, str.c_str(), callinfo);
+		if (!callinfo.empty())
+		{
+			str += " (";
+			bool first = true;
+			for (auto const &info : callinfo)
+			{
+				if (!first)
+					str += " -> ";
+				str += fmt::format("{}:{}",
+					info.file ? info.file : "(unknown)",
+					info.line);
+				first = false;
+			}
+			str += ")";
+		}
+
+		Enqueue(level, std::move(str));
 	}
 
 	// should only be called in native functions
 	template<typename... Args>
-	void LogNative(LogLevel level, const char *fmt, Args &&...args)
+	void LogNative(MySQLLogLevel level, const char *fmt, Args &&...args)
 	{
 		if (!IsLogLevel(level))
 			return;
@@ -116,12 +188,19 @@ public:
 	template<typename T>
 	inline void LogNative(const CError<T> &error)
 	{
-		LogNative(LogLevel::ERROR, "{} error: {}",
+		LogNative(MySQLLogLevel::ERROR, "{} error: {}",
 				  error.module(), error.msg());
 	}
 
 private:
-	PluginLogger_t m_Logger;
+	ICore *m_Core = nullptr;
+	bool m_Enabled = true;
+	unsigned int m_LogMask = static_cast<unsigned int>(MySQLLogLevel::WARNING)
+		| static_cast<unsigned int>(MySQLLogLevel::ERROR);
+
+	std::mutex m_StateMutex;
+	std::mutex m_QueueMutex;
+	std::vector<PendingLogEntry> m_PendingLogs;
 
 };
 

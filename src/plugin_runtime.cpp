@@ -17,5 +17,4 @@ void DestroyPluginRuntime()
 	CDispatcher::CSingleton::Destroy();
 	COptionManager::CSingleton::Destroy();
 	CLog::CSingleton::Destroy();
-	samplog::Api::Destroy();
 }

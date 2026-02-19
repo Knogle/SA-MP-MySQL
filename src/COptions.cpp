@@ -39,7 +39,7 @@ OptionsId_t COptionManager::Create()
 		id++;
 
 	m_Options.emplace(id, new COptions);
-	CLog::Get()->Log(LogLevel::INFO,
+	CLog::Get()->Log(MySQLLogLevel::INFO,
 					 "Options instance with id '{}' successfully created.", id);
 
 	return id;

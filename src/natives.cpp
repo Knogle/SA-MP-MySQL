@@ -30,7 +30,7 @@ AMX_DECLARE_NATIVE(Native::orm_create)
 	}
 
 	cell ret_val = orm_id;
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '{}'", ret_val);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '{}'", ret_val);
 	return ret_val;
 }
 
@@ -42,13 +42,13 @@ AMX_DECLARE_NATIVE(Native::orm_destroy)
 
 	if (COrmManager::Get()->IsValid(ormid) == false)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "invalid orm id '{}'", ormid);
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "invalid orm id '{}'", ormid);
 		return 0;
 	}
 
 
 	cell ret_val = COrmManager::Get()->Delete(ormid) ? 1 : 0;
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '{}'", ret_val);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '{}'", ret_val);
 	return ret_val;
 }
 
@@ -61,12 +61,12 @@ AMX_DECLARE_NATIVE(Native::orm_errno)
 
 	if (!orm)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "invalid orm id '{}'", ormid);
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "invalid orm id '{}'", ormid);
 		return static_cast<cell>(COrm::PawnError::INVALID);
 	}
 
 	cell ret_val = static_cast<cell>(orm->GetError());
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '{}'", ret_val);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '{}'", ret_val);
 	return ret_val;
 }
 
@@ -79,33 +79,33 @@ AMX_DECLARE_NATIVE(Native::orm_apply_cache)
 
 	if (!orm)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "invalid orm id '{}'", ormid);
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "invalid orm id '{}'", ormid);
 		return 0;
 	}
 
 	ResultSet_t active_resultset = CResultSetManager::Get()->GetActiveResultSet();
 	if (!active_resultset)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "no active resultset");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "no active resultset");
 		return 0;
 	}
 
 	auto const res = active_resultset->GetResultByIndex(params[3]);
 	if (res == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "invalid resultset index '{}'", params[3]);
 		return 0;
 	}
 
 	if (orm->ApplyResultByName(res, params[2]) == false)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "invalid row index index '{}'", params[2]);
 		return 0;
 	}
 
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '1'");
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '1'");
 	return 1;
 }
 
@@ -116,14 +116,14 @@ static bool FireOrmQueryWithCallback(AMX *amx, cell *params, COrm::QueryType typ
 
 	if (!orm)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "invalid orm id '{}'", ormid);
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "invalid orm id '{}'", ormid);
 		return false;
 	}
 
 	Handle_t handle = CHandleManager::Get()->GetHandle(orm->GetHandleId());
 	if (!handle)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "handle id '{}' passed to orm instance is invalid",
 							   orm->GetHandleId());
 		return false;
@@ -158,7 +158,7 @@ static bool FireOrmQueryWithCallback(AMX *amx, cell *params, COrm::QueryType typ
 		return false;
 	}
 
-	CLog::Get()->LogNative(LogLevel::INFO, "generated query \"{}\"", query_str);
+	CLog::Get()->LogNative(MySQLLogLevel::INFO, "generated query \"{}\"", query_str);
 
 	Query_t query = CQuery::Create(query_str);
 	query->OnExecutionFinished([orm, callback, type](ResultSet_t result)
@@ -188,7 +188,7 @@ AMX_DECLARE_NATIVE(Native::orm_select)
 	CScopedDebugInfo dbg_info(amx, "orm_select", params, "dss");
 	cell ret_val =
 		FireOrmQueryWithCallback(amx, params, COrm::QueryType::SELECT) ? 1 : 0;
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '{}'", ret_val);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '{}'", ret_val);
 	return ret_val;
 }
 
@@ -198,7 +198,7 @@ AMX_DECLARE_NATIVE(Native::orm_update)
 	CScopedDebugInfo dbg_info(amx, "orm_update", params, "dss");
 	cell ret_val =
 		FireOrmQueryWithCallback(amx, params, COrm::QueryType::UPDATE) ? 1 : 0;
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '{}'", ret_val);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '{}'", ret_val);
 	return ret_val;
 }
 
@@ -208,7 +208,7 @@ AMX_DECLARE_NATIVE(Native::orm_insert)
 	CScopedDebugInfo dbg_info(amx, "orm_insert", params, "dss");
 	cell ret_val =
 		FireOrmQueryWithCallback(amx, params, COrm::QueryType::INSERT) ? 1 : 0;
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '{}'", ret_val);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '{}'", ret_val);
 	return ret_val;
 }
 
@@ -218,7 +218,7 @@ AMX_DECLARE_NATIVE(Native::orm_delete)
 	CScopedDebugInfo dbg_info(amx, "orm_delete", params, "dss");
 	cell ret_val =
 		FireOrmQueryWithCallback(amx, params, COrm::QueryType::DELETE) ? 1 : 0;
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '{}'", ret_val);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '{}'", ret_val);
 	return ret_val;
 }
 
@@ -228,7 +228,7 @@ AMX_DECLARE_NATIVE(Native::orm_save)
 	CScopedDebugInfo dbg_info(amx, "orm_save", params, "dss");
 	cell ret_val =
 		FireOrmQueryWithCallback(amx, params, COrm::QueryType::SAVE) ? 1 : 0;
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '{}'", ret_val);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '{}'", ret_val);
 	return ret_val;
 }
 
@@ -241,7 +241,7 @@ AMX_DECLARE_NATIVE(Native::orm_addvar_int)
 
 	if (!orm)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "invalid orm id '{}'", ormid);
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "invalid orm id '{}'", ormid);
 		return 0;
 	}
 
@@ -258,7 +258,7 @@ AMX_DECLARE_NATIVE(Native::orm_addvar_int)
 		return 0;
 	}
 
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '1'");
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '1'");
 	return 1;
 }
 
@@ -271,7 +271,7 @@ AMX_DECLARE_NATIVE(Native::orm_addvar_float)
 
 	if (!orm)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "invalid orm id '{}'", ormid);
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "invalid orm id '{}'", ormid);
 		return 0;
 	}
 
@@ -288,7 +288,7 @@ AMX_DECLARE_NATIVE(Native::orm_addvar_float)
 		return 0;
 	}
 
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '1'");
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '1'");
 	return 1;
 }
 
@@ -301,7 +301,7 @@ AMX_DECLARE_NATIVE(Native::orm_addvar_string)
 
 	if (!orm)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "invalid orm id '{}'", ormid);
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "invalid orm id '{}'", ormid);
 		return 0;
 	}
 
@@ -319,7 +319,7 @@ AMX_DECLARE_NATIVE(Native::orm_addvar_string)
 		return 0;
 	}
 
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '1'");
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '1'");
 	return 1;
 }
 
@@ -332,13 +332,13 @@ AMX_DECLARE_NATIVE(Native::orm_clear_vars)
 
 	if (!orm)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "invalid orm id '{}'", ormid);
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "invalid orm id '{}'", ormid);
 		return 0;
 	}
 
 
 	orm->ClearAllVariables();
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '1'");
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '1'");
 	return 1;
 }
 
@@ -351,7 +351,7 @@ AMX_DECLARE_NATIVE(Native::orm_delvar)
 
 	if (!orm)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "invalid orm id '{}'", ormid);
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "invalid orm id '{}'", ormid);
 		return 0;
 	}
 
@@ -359,7 +359,7 @@ AMX_DECLARE_NATIVE(Native::orm_delvar)
 	amx_StrParam(amx, params[2], column_name);
 	if (column_name == nullptr || strlen(column_name) == 0)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "empty column name");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "empty column name");
 		return 0;
 	}
 
@@ -371,7 +371,7 @@ AMX_DECLARE_NATIVE(Native::orm_delvar)
 		return 0;
 	}
 
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '1'");
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '1'");
 	return 1;
 }
 
@@ -384,7 +384,7 @@ AMX_DECLARE_NATIVE(Native::orm_setkey)
 
 	if (!orm)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "invalid orm id '{}'", ormid);
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "invalid orm id '{}'", ormid);
 		return 0;
 	}
 
@@ -392,7 +392,7 @@ AMX_DECLARE_NATIVE(Native::orm_setkey)
 	amx_StrParam(amx, params[2], column_name);
 	if (column_name == nullptr || strlen(column_name) == 0)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "empty column name");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "empty column name");
 		return 0;
 	}
 
@@ -404,7 +404,7 @@ AMX_DECLARE_NATIVE(Native::orm_setkey)
 		return 0;
 	}
 
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '1'");
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '1'");
 	return 1;
 }
 
@@ -419,7 +419,7 @@ AMX_DECLARE_NATIVE(Native::mysql_connect)
 	auto *options = COptionManager::Get()->GetOptionHandle(options_id);
 	if (options == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "invalid option id '{}'", options_id);
 		return 0;
 	}
@@ -449,7 +449,7 @@ AMX_DECLARE_NATIVE(Native::mysql_connect)
 	assert(handle != nullptr);
 
 	cell ret_val = handle->GetId();
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '{}'", ret_val);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '{}'", ret_val);
 	return ret_val;
 }
 
@@ -461,7 +461,7 @@ AMX_DECLARE_NATIVE(Native::mysql_connect_file)
 	//no directory seperators allowed
 	if (file_name.find_first_of("/\\") != string::npos)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "file \"{}\" not in SA-MP root folder", file_name);
 		return 0;
 	}
@@ -479,7 +479,7 @@ AMX_DECLARE_NATIVE(Native::mysql_connect_file)
 	assert(handle != nullptr);
 
 	cell ret_val = handle->GetId();
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '{}'", ret_val);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '{}'", ret_val);
 	return ret_val;
 }
 
@@ -491,13 +491,13 @@ AMX_DECLARE_NATIVE(Native::mysql_close)
 	Handle_t handle = CHandleManager::Get()->GetHandle(handle_id);
 	if (handle == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "invalid connection handle '{}'", handle_id);
 		return 0;
 	}
 
 	cell ret_val = CHandleManager::Get()->Destroy(handle) ? 1 : 0;
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '{}'", ret_val);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '{}'", ret_val);
 	return ret_val;
 }
 
@@ -509,13 +509,13 @@ AMX_DECLARE_NATIVE(Native::mysql_unprocessed_queries)
 	Handle_t handle = CHandleManager::Get()->GetHandle(handle_id);
 	if (handle == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "invalid connection handle '{}'", handle_id);
 		return -1;
 	}
 
 	cell ret_val = handle->GetUnprocessedQueryCount();
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '{}'", ret_val);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '{}'", ret_val);
 	return ret_val;
 }
 
@@ -534,12 +534,12 @@ AMX_DECLARE_NATIVE(Native::mysql_global_options)
 				option, static_cast<bool>(params[2] != 0));
 			break;
 		default:
-			CLog::Get()->LogNative(LogLevel::ERROR,
+			CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 								   "unknown option type '{}'", params[1]);
 			return 0;
 	}
 
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '1'");
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '1'");
 	return 1;
 }
 
@@ -548,7 +548,7 @@ AMX_DECLARE_NATIVE(Native::mysql_init_options)
 {
 	CScopedDebugInfo dbg_info(amx, "mysql_init_options", params);
 	cell ret_val = COptionManager::Get()->Create();
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '{}'", ret_val);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '{}'", ret_val);
 	return ret_val;
 }
 
@@ -560,14 +560,14 @@ AMX_DECLARE_NATIVE(Native::mysql_set_option)
 	auto *options = COptionManager::Get()->GetOptionHandle(options_id);
 	if (options == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "invalid option id '{}'", options_id);
 		return 0;
 	}
 
 	if (params[0] == sizeof(cell) * 2)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "no value specified");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "no value specified");
 		return 0;
 	}
 
@@ -602,7 +602,7 @@ AMX_DECLARE_NATIVE(Native::mysql_set_option)
 				ret_val = options->SetOption(option,
 											 static_cast<unsigned int>(value));
 			else
-				CLog::Get()->LogNative(LogLevel::ERROR,
+				CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 									   "invalid pool size '{}'", value);
 			break;
 		case COptions::Type::SERVER_PORT:
@@ -610,12 +610,12 @@ AMX_DECLARE_NATIVE(Native::mysql_set_option)
 				ret_val = options->SetOption(option,
 											 static_cast<unsigned int>(value));
 			else
-				CLog::Get()->LogNative(LogLevel::ERROR,
+				CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 									   "invalid MySQL server port '{}'", value);
 			break;
 	}
 
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '{}'", ret_val ? 1 : 0);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '{}'", ret_val ? 1 : 0);
 	return ret_val ? 1 : 0;
 }
 
@@ -627,7 +627,7 @@ static bool SendQueryWithCallback(AMX *amx, cell *params,
 
 	if (handle == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "invalid connection handle '{}'", handle_id);
 		return false;
 	}
@@ -694,7 +694,7 @@ AMX_DECLARE_NATIVE(Native::mysql_pquery)
 	cell ret_val = SendQueryWithCallback(
 		amx, params, CHandle::ExecutionType::PARALLEL) ? 1 : 0;
 
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '{}'", ret_val);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '{}'", ret_val);
 	return ret_val;
 }
 
@@ -707,7 +707,7 @@ AMX_DECLARE_NATIVE(Native::mysql_tquery)
 	cell ret_val = SendQueryWithCallback(
 		amx, params, CHandle::ExecutionType::THREADED) ? 1 : 0;
 
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '{}'", ret_val);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '{}'", ret_val);
 	return ret_val;
 }
 
@@ -720,7 +720,7 @@ AMX_DECLARE_NATIVE(Native::mysql_query)
 
 	if (handle == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "invalid connection handle '{}'", handle_id);
 		return 0;
 	}
@@ -735,7 +735,7 @@ AMX_DECLARE_NATIVE(Native::mysql_query)
 		ret_val = CResultSetManager::Get()->StoreActiveResultSet();
 	}
 
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '{}'", ret_val);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '{}'", ret_val);
 	return ret_val;
 }
 
@@ -797,7 +797,7 @@ AMX_DECLARE_NATIVE(Native::mysql_tquery_file)
 
 	if (handle == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "invalid connection handle '{}'", handle_id);
 		return 0;
 	}
@@ -805,7 +805,7 @@ AMX_DECLARE_NATIVE(Native::mysql_tquery_file)
 	string filename = amx_GetCppString(amx, params[2]);
 	if (filename.find("..") != string::npos)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "invalid file path '{}'", filename);
 		return 0;
 	}
@@ -814,7 +814,7 @@ AMX_DECLARE_NATIVE(Native::mysql_tquery_file)
 	std::ifstream file(filepath);
 	if (file.fail())
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "can't open file '{}'", filepath);
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "can't open file '{}'", filepath);
 		return 0;
 	}
 
@@ -859,7 +859,7 @@ AMX_DECLARE_NATIVE(Native::mysql_tquery_file)
 		vector<string> queries;
 		if (ParseQueriesFromFile(file_path, queries) && !queries.empty())
 		{
-			CLog::Get()->Log(LogLevel::DEBUG, "parsed {} queries for file '{}'",
+			CLog::Get()->Log(MySQLLogLevel::DEBUG, "parsed {} queries for file '{}'",
 							 queries.size(), file_path);
 
 			auto results = std::make_shared<vector<ResultSet_t>>();
@@ -897,7 +897,7 @@ AMX_DECLARE_NATIVE(Native::mysql_tquery_file)
 		handle, filepath, callback, query_error_func);
 
 
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '1'");
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '1'");
 	return 1;
 }
 
@@ -911,7 +911,7 @@ AMX_DECLARE_NATIVE(Native::mysql_query_file)
 
 	if (handle == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "invalid connection handle '{}'", handle_id);
 		return 0;
 	}
@@ -919,7 +919,7 @@ AMX_DECLARE_NATIVE(Native::mysql_query_file)
 	string filename = amx_GetCppString(amx, params[2]);
 	if (filename.find("..") != string::npos)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "invalid file path '{}'", filename);
 		return 0;
 	}
@@ -928,11 +928,11 @@ AMX_DECLARE_NATIVE(Native::mysql_query_file)
 	const string filepath = "scriptfiles/" + filename;
 	if (!ParseQueriesFromFile(filepath, queries))
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "can't open file '{}'", filepath);
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "can't open file '{}'", filepath);
 		return 0;
 	}
 
-	CLog::Get()->LogNative(LogLevel::DEBUG, "parsed {} queries for file '{}'",
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "parsed {} queries for file '{}'",
 						   queries.size(), filepath);
 
 
@@ -942,10 +942,10 @@ AMX_DECLARE_NATIVE(Native::mysql_query_file)
 	{
 		Query_t query = CQuery::Create(query_str);
 
-		CLog::Get()->LogNative(LogLevel::DEBUG, "executing query '{}'", query_str);
+		CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "executing query '{}'", query_str);
 		if (!handle->Execute(CHandle::ExecutionType::UNTHREADED, query))
 		{
-			CLog::Get()->LogNative(LogLevel::ERROR, "failed to execute query '{}'", query_str);
+			CLog::Get()->LogNative(MySQLLogLevel::ERROR, "failed to execute query '{}'", query_str);
 			return 0;
 		}
 
@@ -960,7 +960,7 @@ AMX_DECLARE_NATIVE(Native::mysql_query_file)
 		ret_val = CResultSetManager::Get()->StoreActiveResultSet();
 	}
 
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '{}'", ret_val);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '{}'", ret_val);
 	return ret_val;
 }
 
@@ -972,7 +972,7 @@ AMX_DECLARE_NATIVE(Native::mysql_errno)
 	Handle_t handle = CHandleManager::Get()->GetHandle(handle_id);
 	if (handle == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "invalid connection handle '{}'", handle_id);
 		return -1;
 	}
@@ -982,7 +982,7 @@ AMX_DECLARE_NATIVE(Native::mysql_errno)
 		return -1;
 
 	cell ret_val = errorid;
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '{}'", ret_val);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '{}'", ret_val);
 	return ret_val;
 }
 
@@ -995,7 +995,7 @@ AMX_DECLARE_NATIVE(Native::mysql_error)
 	Handle_t handle = CHandleManager::Get()->GetHandle(handle_id);
 	if (handle == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "invalid connection handle '{}'", handle_id);
 		return 0;
 	}
@@ -1006,7 +1006,7 @@ AMX_DECLARE_NATIVE(Native::mysql_error)
 
 	amx_SetCppString(amx, params[1], errormsg, params[2]);
 
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '1'");
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '1'");
 	return 1;
 }
 
@@ -1020,7 +1020,7 @@ AMX_DECLARE_NATIVE(Native::mysql_escape_string)
 	Handle_t handle = CHandleManager::Get()->GetHandle(handle_id);
 	if (handle == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "invalid connection handle '{}'", handle_id);
 		return -1;
 	}
@@ -1032,7 +1032,7 @@ AMX_DECLARE_NATIVE(Native::mysql_escape_string)
 	if (unescaped_str != nullptr
 		&& handle->EscapeString(unescaped_str, escaped_str) == false)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "can't escape string '{}'", escaped_str);
 		return -1;
 	}
@@ -1040,7 +1040,7 @@ AMX_DECLARE_NATIVE(Native::mysql_escape_string)
 	size_t max_str_len = params[3] - 1;
 	if (escaped_str.length() > max_str_len)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "destination array too small " \
 							   "(needs at least '{}' cells; has only '{}')",
 							   escaped_str.length() + 1, max_str_len + 1);
@@ -1050,7 +1050,7 @@ AMX_DECLARE_NATIVE(Native::mysql_escape_string)
 	amx_SetCString(amx, params[2], escaped_str.c_str(), max_str_len + 1);
 
 	cell ret_val = escaped_str.length();
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '{}'", ret_val);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '{}'", ret_val);
 	return ret_val;
 }
 
@@ -1063,7 +1063,7 @@ AMX_DECLARE_NATIVE(Native::mysql_format)
 	Handle_t handle = CHandleManager::Get()->GetHandle(handle_id);
 	if (handle == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "invalid connection handle '{}'", handle_id);
 		return 0;
 	}
@@ -1075,7 +1075,7 @@ AMX_DECLARE_NATIVE(Native::mysql_format)
 
 	if (format_str == nullptr || params[3] <= 0)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "invalid format string or destination size ({})",
 							   params[3]);
 		return 0;
@@ -1095,7 +1095,7 @@ AMX_DECLARE_NATIVE(Native::mysql_format)
 
 		if (dest_writer.size() >= dest_maxsize)
 		{
-			CLog::Get()->LogNative(LogLevel::ERROR,
+			CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 								   "destination size '{}' is too small",
 								   dest_maxsize);
 			break;
@@ -1113,7 +1113,7 @@ AMX_DECLARE_NATIVE(Native::mysql_format)
 
 			if (param_counter >= num_dyn_args)
 			{
-				CLog::Get()->LogNative(LogLevel::ERROR,
+				CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 									   "no value for specifier '%{}' passed",
 									   *format_str);
 				break;
@@ -1167,7 +1167,7 @@ AMX_DECLARE_NATIVE(Native::mysql_format)
 						}
 						else
 						{
-							CLog::Get()->LogNative(LogLevel::ERROR,
+							CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 								"can't escape string '{}'",
 								source_str ? source_str : "(nullptr)");
 							break_loop = true;
@@ -1183,7 +1183,7 @@ AMX_DECLARE_NATIVE(Native::mysql_format)
 				}
 				break;
 				default:
-					CLog::Get()->LogNative(LogLevel::ERROR,
+					CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 										   "invalid format specifier '%{}'",
 										   *format_str);
 					// can't break out of loop from within a switch
@@ -1208,7 +1208,7 @@ AMX_DECLARE_NATIVE(Native::mysql_format)
 		amx_SetCString(amx, params[2], dest_writer.c_str(), dest_maxsize);
 	}
 
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '{}'", ret_val);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '{}'", ret_val);
 	return ret_val;
 }
 
@@ -1220,14 +1220,14 @@ AMX_DECLARE_NATIVE(Native::mysql_set_charset)
 	Handle_t handle = CHandleManager::Get()->GetHandle(handle_id);
 	if (handle == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "invalid connection handle '{}'", handle_id);
 		return 0;
 	}
 
 	cell ret_val =
 		handle->SetCharacterSet(amx_GetCppString(amx, params[1])) ? 1 : 0;
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '{}'", ret_val);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '{}'", ret_val);
 	return ret_val;
 }
 
@@ -1240,7 +1240,7 @@ AMX_DECLARE_NATIVE(Native::mysql_get_charset)
 	Handle_t handle = CHandleManager::Get()->GetHandle(handle_id);
 	if (handle == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "invalid connection handle '{}'", handle_id);
 		return 0;
 	}
@@ -1248,14 +1248,14 @@ AMX_DECLARE_NATIVE(Native::mysql_get_charset)
 	string charset;
 	if (handle->GetCharacterSet(charset) == false)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "can't retrieve character set");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "can't retrieve character set");
 		return 0;
 	}
 
 	size_t max_str_len = params[2] - 1;
 	if (charset.length() > max_str_len)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "destination array too small " \
 							   "(needs at least '{}' cells; has only '{}')",
 							   charset.length() + 1, max_str_len + 1);
@@ -1263,7 +1263,7 @@ AMX_DECLARE_NATIVE(Native::mysql_get_charset)
 	}
 
 	amx_SetCppString(amx, params[1], charset, max_str_len + 1);
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '1'");
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '1'");
 	return 1;
 }
 
@@ -1276,7 +1276,7 @@ AMX_DECLARE_NATIVE(Native::mysql_stat)
 	Handle_t handle = CHandleManager::Get()->GetHandle(handle_id);
 	if (handle == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "invalid connection handle '{}'", handle_id);
 		return 0;
 	}
@@ -1284,14 +1284,14 @@ AMX_DECLARE_NATIVE(Native::mysql_stat)
 	string status;
 	if (handle->GetStatus(status) == false)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "can't retrieve status");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "can't retrieve status");
 		return 0;
 	}
 
 	size_t max_str_len = params[2] - 1;
 	if (status.length() > max_str_len)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "destination array too small " \
 							   "(needs at least '{}' cells; has only '{}')",
 							   status.length() + 1, max_str_len + 1);
@@ -1299,7 +1299,7 @@ AMX_DECLARE_NATIVE(Native::mysql_stat)
 	}
 
 	amx_SetCppString(amx, params[1], status, max_str_len + 1);
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '1'");
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '1'");
 	return 1;
 }
 
@@ -1312,7 +1312,7 @@ AMX_DECLARE_NATIVE(Native::cache_get_row_count)
 	auto resultset = CResultSetManager::Get()->GetActiveResultSet();
 	if (resultset == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "no active cache");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "no active cache");
 		return 0;
 	}
 
@@ -1320,20 +1320,20 @@ AMX_DECLARE_NATIVE(Native::cache_get_row_count)
 	if (amx_GetAddr(amx, params[1], &dest_addr) != AMX_ERR_NONE
 		|| dest_addr == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "invalid reference passed");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "invalid reference passed");
 		return 0;
 	}
 
 	Result_t result = resultset->GetActiveResult();
 	if (result == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "active cache has no results");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "active cache has no results");
 		return 0;
 	}
 
 	*dest_addr = static_cast<cell>(result->GetRowCount());
 
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '1'");
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '1'");
 	return 1;
 }
 
@@ -1344,7 +1344,7 @@ AMX_DECLARE_NATIVE(Native::cache_get_field_count)
 	auto resultset = CResultSetManager::Get()->GetActiveResultSet();
 	if (resultset == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "no active cache");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "no active cache");
 		return 0;
 	}
 
@@ -1352,20 +1352,20 @@ AMX_DECLARE_NATIVE(Native::cache_get_field_count)
 	if (amx_GetAddr(amx, params[1], &dest_addr) != AMX_ERR_NONE
 		|| dest_addr == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "invalid reference passed");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "invalid reference passed");
 		return 0;
 	}
 
 	Result_t result = resultset->GetActiveResult();
 	if (result == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "active cache has no results");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "active cache has no results");
 		return 0;
 	}
 
 	*dest_addr = result->GetFieldCount();
 
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '1'");
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '1'");
 	return 1;
 }
 
@@ -1376,7 +1376,7 @@ AMX_DECLARE_NATIVE(Native::cache_get_result_count)
 	auto resultset = CResultSetManager::Get()->GetActiveResultSet();
 	if (resultset == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "no active cache");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "no active cache");
 		return 0;
 	}
 
@@ -1384,13 +1384,13 @@ AMX_DECLARE_NATIVE(Native::cache_get_result_count)
 	if (amx_GetAddr(amx, params[1], &dest_addr) != AMX_ERR_NONE
 		|| dest_addr == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "invalid reference passed");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "invalid reference passed");
 		return 0;
 	}
 
 	*dest_addr = resultset->GetResultCount();
 
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '1'");
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '1'");
 	return 1;
 }
 
@@ -1402,26 +1402,26 @@ AMX_DECLARE_NATIVE(Native::cache_get_field_name)
 	auto resultset = CResultSetManager::Get()->GetActiveResultSet();
 	if (resultset == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "no active cache");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "no active cache");
 		return 0;
 	}
 
 	Result_t result = resultset->GetActiveResult();
 	if (result == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "active cache has no results");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "active cache has no results");
 		return 0;
 	}
 
 	string field_name;
 	if (result->GetFieldName(params[1], field_name) == false)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "invalid index '{}'", params[1]);
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "invalid index '{}'", params[1]);
 		return 0;
 	}
 
 	amx_SetCppString(amx, params[2], field_name, params[3]);
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '1'");
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '1'");
 	return 1;
 }
 
@@ -1432,26 +1432,26 @@ AMX_DECLARE_NATIVE(Native::cache_get_field_type)
 	auto resultset = CResultSetManager::Get()->GetActiveResultSet();
 	if (resultset == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "no active cache");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "no active cache");
 		return -1;
 	}
 
 	Result_t result = resultset->GetActiveResult();
 	if (result == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "active cache has no results");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "active cache has no results");
 		return -1;
 	}
 
 	enum_field_types type;
 	if (result->GetFieldType(params[1], type) == false)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "invalid index '{}'", params[1]);
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "invalid index '{}'", params[1]);
 		return -1;
 	}
 
 	cell ret_val = type;
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '{}'", ret_val);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '{}'", ret_val);
 	return ret_val;
 }
 
@@ -1462,12 +1462,12 @@ AMX_DECLARE_NATIVE(Native::cache_set_result)
 	auto resultset = CResultSetManager::Get()->GetActiveResultSet();
 	if (resultset == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "no active cache");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "no active cache");
 		return 0;
 	}
 
 	cell ret_val = resultset->SetActiveResult(params[1]) ? 1 : 0;
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '{}'", ret_val);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '{}'", ret_val);
 	return ret_val;
 }
 
@@ -1480,21 +1480,21 @@ AMX_DECLARE_NATIVE(Native::cache_get_value_index)
 	auto resultset = CResultSetManager::Get()->GetActiveResultSet();
 	if (resultset == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "no active cache");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "no active cache");
 		return 0;
 	}
 
 	Result_t result = resultset->GetActiveResult();
 	if (result == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "active cache has no results");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "active cache has no results");
 		return 0;
 	}
 
 	const char *data = nullptr;
 	if (result->GetRowData(params[1], params[2], &data) == false)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "invalid row ('{}') or field ('{}') index",
 							   params[1], params[2]);
 		return 0;
@@ -1503,10 +1503,10 @@ AMX_DECLARE_NATIVE(Native::cache_get_value_index)
 	if (data == nullptr) //NULL value
 		data = "NULL";
 
-	CLog::Get()->LogNative(LogLevel::DEBUG, "assigned value: '{}'", data);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "assigned value: '{}'", data);
 
 	amx_SetCString(amx, params[3], data, params[4]);
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '1'");
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '1'");
 	return 1;
 }
 
@@ -1517,7 +1517,7 @@ AMX_DECLARE_NATIVE(Native::cache_get_value_index_int)
 	auto resultset = CResultSetManager::Get()->GetActiveResultSet();
 	if (resultset == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "no active cache");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "no active cache");
 		return 0;
 	}
 
@@ -1525,21 +1525,21 @@ AMX_DECLARE_NATIVE(Native::cache_get_value_index_int)
 	if (amx_GetAddr(amx, params[3], &dest_addr) != AMX_ERR_NONE
 		|| dest_addr == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "invalid reference passed");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "invalid reference passed");
 		return 0;
 	}
 
 	Result_t result = resultset->GetActiveResult();
 	if (result == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "active cache has no results");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "active cache has no results");
 		return 0;
 	}
 
 	const char *data = nullptr;
 	if (result->GetRowData(params[1], params[2], &data) == false)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "invalid row ('{}') or field ('{}') index",
 							   params[1], params[2]);
 		return 0;
@@ -1547,14 +1547,14 @@ AMX_DECLARE_NATIVE(Native::cache_get_value_index_int)
 
 	if (ConvertStrToData<cell>(data, *dest_addr) == false)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "value '{}' is not a number",
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "value '{}' is not a number",
 							   data ? data : "NULL");
 		return 0;
 	}
 
-	CLog::Get()->LogNative(LogLevel::DEBUG, "assigned value: '{}'", *dest_addr);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "assigned value: '{}'", *dest_addr);
 
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '1'");
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '1'");
 	return 1;
 }
 
@@ -1565,7 +1565,7 @@ AMX_DECLARE_NATIVE(Native::cache_get_value_index_float)
 	auto resultset = CResultSetManager::Get()->GetActiveResultSet();
 	if (resultset == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "no active cache");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "no active cache");
 		return 0;
 	}
 
@@ -1573,21 +1573,21 @@ AMX_DECLARE_NATIVE(Native::cache_get_value_index_float)
 	if (amx_GetAddr(amx, params[3], &dest_addr) != AMX_ERR_NONE
 		|| dest_addr == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "invalid reference passed");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "invalid reference passed");
 		return 0;
 	}
 
 	Result_t result = resultset->GetActiveResult();
 	if (result == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "active cache has no results");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "active cache has no results");
 		return 0;
 	}
 
 	const char *data = nullptr;
 	if (result->GetRowData(params[1], params[2], &data) == false)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "invalid row ('{}') or field ('{}') index",
 							   params[1], params[2]);
 		return 0;
@@ -1595,15 +1595,15 @@ AMX_DECLARE_NATIVE(Native::cache_get_value_index_float)
 
 	if (ConvertStrToData<float>(data, amx_ctof(*dest_addr)) == false)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "value '{}' is not a number",
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "value '{}' is not a number",
 							   data ? data : "NULL");
 		return 0;
 	}
 
-	CLog::Get()->LogNative(LogLevel::DEBUG,
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG,
 						   "assigned value: '{}'", amx_ctof(*dest_addr));
 
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '1'");
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '1'");
 	return 1;
 }
 
@@ -1614,37 +1614,37 @@ AMX_DECLARE_NATIVE(Native::cache_is_value_index_null)
 	auto resultset = CResultSetManager::Get()->GetActiveResultSet();
 	if (resultset == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "no active cache");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "no active cache");
 		return 0;
 	}
 
 	cell *dest_addr = nullptr;
 	if (amx_GetAddr(amx, params[3], &dest_addr) != AMX_ERR_NONE || dest_addr == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "invalid reference passed");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "invalid reference passed");
 		return 0;
 	}
 
 	Result_t result = resultset->GetActiveResult();
 	if (result == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "active cache has no results");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "active cache has no results");
 		return 0;
 	}
 
 	const char *data = nullptr;
 	if (result->GetRowData(params[1], params[2], &data) == false)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "invalid row ('{}') or field ('{}') index",
 							   params[1], params[2]);
 		return 0;
 	}
 
 	*dest_addr = (data == nullptr) ? 1 : 0;
-	CLog::Get()->LogNative(LogLevel::DEBUG, "assigned value: '{}'", *dest_addr);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "assigned value: '{}'", *dest_addr);
 
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '1'");
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '1'");
 	return 1;
 }
 
@@ -1656,28 +1656,28 @@ AMX_DECLARE_NATIVE(Native::cache_get_value_name)
 	auto resultset = CResultSetManager::Get()->GetActiveResultSet();
 	if (resultset == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "no active cache");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "no active cache");
 		return 0;
 	}
 
 	const string field_name = amx_GetCppString(amx, params[2]);
 	if (field_name.empty())
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "empty field name");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "empty field name");
 		return 0;
 	}
 
 	Result_t result = resultset->GetActiveResult();
 	if (result == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "active cache has no results");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "active cache has no results");
 		return 0;
 	}
 
 	const cell &row_idx = params[1];
 	if (row_idx >= result->GetRowCount())
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "invalid row index '{}' (number of rows: '{}')",
 							   row_idx, result->GetRowCount());
 		return 0;
@@ -1686,17 +1686,17 @@ AMX_DECLARE_NATIVE(Native::cache_get_value_name)
 	const char *data = nullptr;
 	if (result->GetRowDataByName(row_idx, field_name, &data) == false)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "field '{}' not found", field_name);
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "field '{}' not found", field_name);
 		return 0;
 	}
 
 	if (data == nullptr) //NULL value
 		data = "NULL";
 
-	CLog::Get()->LogNative(LogLevel::DEBUG, "assigned value: '{}'", data);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "assigned value: '{}'", data);
 
 	amx_SetCString(amx, params[3], data, params[4]);
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '1'");
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '1'");
 	return 1;
 }
 
@@ -1707,7 +1707,7 @@ AMX_DECLARE_NATIVE(Native::cache_get_value_name_int)
 	auto resultset = CResultSetManager::Get()->GetActiveResultSet();
 	if (resultset == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "no active cache");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "no active cache");
 		return 0;
 	}
 
@@ -1715,28 +1715,28 @@ AMX_DECLARE_NATIVE(Native::cache_get_value_name_int)
 	if (amx_GetAddr(amx, params[3], &dest_addr) != AMX_ERR_NONE
 		|| dest_addr == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "invalid reference passed");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "invalid reference passed");
 		return 0;
 	}
 
 	const string field_name = amx_GetCppString(amx, params[2]);
 	if (field_name.empty())
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "empty field name");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "empty field name");
 		return 0;
 	}
 
 	Result_t result = resultset->GetActiveResult();
 	if (result == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "active cache has no results");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "active cache has no results");
 		return 0;
 	}
 
 	const cell &row_idx = params[1];
 	if (row_idx >= result->GetRowCount())
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "invalid row index '{}' (number of rows: '{}')",
 							   row_idx, result->GetRowCount());
 		return 0;
@@ -1745,20 +1745,20 @@ AMX_DECLARE_NATIVE(Native::cache_get_value_name_int)
 	const char *data = nullptr;
 	if (result->GetRowDataByName(row_idx, field_name, &data) == false)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "field '{}' not found", field_name);
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "field '{}' not found", field_name);
 		return 0;
 	}
 
 	if (ConvertStrToData<cell>(data, *dest_addr) == false)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "value '{}' is not a number",
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "value '{}' is not a number",
 							   data ? data : "NULL");
 		return 0;
 	}
 
-	CLog::Get()->LogNative(LogLevel::DEBUG, "assigned value: '{}'", *dest_addr);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "assigned value: '{}'", *dest_addr);
 
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '1'");
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '1'");
 	return 1;
 }
 
@@ -1769,7 +1769,7 @@ AMX_DECLARE_NATIVE(Native::cache_get_value_name_float)
 	auto resultset = CResultSetManager::Get()->GetActiveResultSet();
 	if (resultset == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "no active cache");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "no active cache");
 		return 0;
 	}
 
@@ -1777,28 +1777,28 @@ AMX_DECLARE_NATIVE(Native::cache_get_value_name_float)
 	if (amx_GetAddr(amx, params[3], &dest_addr) != AMX_ERR_NONE
 		|| dest_addr == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "invalid reference passed");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "invalid reference passed");
 		return 0;
 	}
 
 	const string field_name = amx_GetCppString(amx, params[2]);
 	if (field_name.empty())
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "empty field name");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "empty field name");
 		return 0;
 	}
 
 	Result_t result = resultset->GetActiveResult();
 	if (result == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "active cache has no results");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "active cache has no results");
 		return 0;
 	}
 
 	const cell &row_idx = params[1];
 	if (row_idx >= result->GetRowCount())
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "invalid row index '{}' (number of rows: '{}')",
 							   row_idx, result->GetRowCount());
 		return 0;
@@ -1807,21 +1807,21 @@ AMX_DECLARE_NATIVE(Native::cache_get_value_name_float)
 	const char *data = nullptr;
 	if (result->GetRowDataByName(row_idx, field_name, &data) == false)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "field '{}' not found", field_name);
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "field '{}' not found", field_name);
 		return 0;
 	}
 
 	if (ConvertStrToData<float>(data, amx_ctof(*dest_addr)) == false)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "value '{}' is not a number",
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "value '{}' is not a number",
 							   data ? data : "NULL");
 		return 0;
 	}
 
-	CLog::Get()->LogNative(LogLevel::DEBUG,
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG,
 						   "assigned value: '{}'", amx_ctof(*dest_addr));
 
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '1'");
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '1'");
 	return 1;
 }
 
@@ -1832,7 +1832,7 @@ AMX_DECLARE_NATIVE(Native::cache_is_value_name_null)
 	auto resultset = CResultSetManager::Get()->GetActiveResultSet();
 	if (resultset == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "no active cache");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "no active cache");
 		return 0;
 	}
 
@@ -1840,28 +1840,28 @@ AMX_DECLARE_NATIVE(Native::cache_is_value_name_null)
 	if (amx_GetAddr(amx, params[3], &dest_addr) != AMX_ERR_NONE
 		|| dest_addr == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "invalid reference passed");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "invalid reference passed");
 		return 0;
 	}
 
 	const string field_name = amx_GetCppString(amx, params[2]);
 	if (field_name.empty())
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "empty field name");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "empty field name");
 		return 0;
 	}
 
 	Result_t result = resultset->GetActiveResult();
 	if (result == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "active cache has no results");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "active cache has no results");
 		return 0;
 	}
 
 	const cell &row_idx = params[1];
 	if (row_idx >= result->GetRowCount())
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR,
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR,
 							   "invalid row index '{}' (number of rows: '{}')",
 							   row_idx, result->GetRowCount());
 		return 0;
@@ -1870,14 +1870,14 @@ AMX_DECLARE_NATIVE(Native::cache_is_value_name_null)
 	const char *data = nullptr;
 	if (result->GetRowDataByName(row_idx, field_name, &data) == false)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "field '{}' not found", field_name);
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "field '{}' not found", field_name);
 		return 0;
 	}
 
 	*dest_addr = (data == nullptr) ? 1 : 0;
-	CLog::Get()->LogNative(LogLevel::DEBUG, "assigned value: '{}'", *dest_addr);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "assigned value: '{}'", *dest_addr);
 
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '1'");
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '1'");
 	return 1;
 }
 
@@ -1888,9 +1888,9 @@ AMX_DECLARE_NATIVE(Native::cache_save)
 
 	cell ret_val = CResultSetManager::Get()->StoreActiveResultSet();
 	if (ret_val == 0)
-		CLog::Get()->LogNative(LogLevel::ERROR, "no active cache");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "no active cache");
 
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '{}'", ret_val);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '{}'", ret_val);
 	return ret_val;
 }
 
@@ -1900,11 +1900,11 @@ AMX_DECLARE_NATIVE(Native::cache_delete)
 	CScopedDebugInfo dbg_info(amx, "cache_delete", params, "d");
 	if (!CResultSetManager::Get()->DeleteResultSet(params[1]))
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "invalid cache id '{}'", params[1]);
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "invalid cache id '{}'", params[1]);
 		return 0;
 	}
 
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '1'");
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '1'");
 	return 1;
 }
 
@@ -1915,13 +1915,13 @@ AMX_DECLARE_NATIVE(Native::cache_set_active)
 	auto resultset = CResultSetManager::Get()->GetResultSet(params[1]);
 	if (!resultset)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "invalid cache id '{}'", params[1]);
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "invalid cache id '{}'", params[1]);
 		return 0;
 	}
 
 	CResultSetManager::Get()->SetActiveResultSet(resultset);
 
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '1'");
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '1'");
 	return 1;
 }
 
@@ -1930,7 +1930,7 @@ AMX_DECLARE_NATIVE(Native::cache_unset_active)
 {
 	CScopedDebugInfo dbg_info(amx, "cache_unset_active", params, "");
 	CResultSetManager::Get()->SetActiveResultSet(nullptr);
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '1'");
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '1'");
 	return 1;
 }
 
@@ -1939,7 +1939,7 @@ AMX_DECLARE_NATIVE(Native::cache_is_any_active)
 {
 	CScopedDebugInfo dbg_info(amx, "cache_is_any_active", params, "");
 	bool ret_val = (CResultSetManager::Get()->GetActiveResultSet() != nullptr);
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '{}'", ret_val);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '{}'", ret_val);
 	return ret_val ? 1 : 0;
 }
 
@@ -1948,7 +1948,7 @@ AMX_DECLARE_NATIVE(Native::cache_is_valid)
 {
 	CScopedDebugInfo dbg_info(amx, "cache_is_valid", params, "d");
 	bool ret_val = CResultSetManager::Get()->IsValidResultSet(params[1]);
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '{}'", ret_val);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '{}'", ret_val);
 	return ret_val ? 1 : 0;
 }
 
@@ -1959,19 +1959,19 @@ AMX_DECLARE_NATIVE(Native::cache_affected_rows)
 	auto resultset = CResultSetManager::Get()->GetActiveResultSet();
 	if (resultset == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "no active cache");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "no active cache");
 		return -1;
 	}
 
 	Result_t result = resultset->GetActiveResult();
 	if (result == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "active cache has no results");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "active cache has no results");
 		return -1;
 	}
 
 	cell ret_val = static_cast<cell>(result->AffectedRows());
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '{}'", ret_val);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '{}'", ret_val);
 	return ret_val;
 }
 
@@ -1982,19 +1982,19 @@ AMX_DECLARE_NATIVE(Native::cache_warning_count)
 	auto resultset = CResultSetManager::Get()->GetActiveResultSet();
 	if (resultset == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "no active cache");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "no active cache");
 		return -1;
 	}
 
 	Result_t result = resultset->GetActiveResult();
 	if (result == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "active cache has no results");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "active cache has no results");
 		return -1;
 	}
 
 	cell ret_val = result->WarningCount();
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '{}'", ret_val);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '{}'", ret_val);
 	return ret_val;
 }
 
@@ -2005,19 +2005,19 @@ AMX_DECLARE_NATIVE(Native::cache_insert_id)
 	auto resultset = CResultSetManager::Get()->GetActiveResultSet();
 	if (resultset == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "no active cache");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "no active cache");
 		return -1;
 	}
 
 	Result_t result = resultset->GetActiveResult();
 	if (result == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "active cache has no results");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "active cache has no results");
 		return -1;
 	}
 
 	cell ret_val = static_cast<cell>(result->InsertId());
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '{}'", ret_val);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '{}'", ret_val);
 	return ret_val;
 }
 
@@ -2028,13 +2028,13 @@ AMX_DECLARE_NATIVE(Native::cache_get_query_exec_time)
 	auto resultset = CResultSetManager::Get()->GetActiveResultSet();
 	if (resultset == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "no active cache");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "no active cache");
 		return -1;
 	}
 
 	cell ret_val = static_cast<cell>(
 		resultset->GetExecutionTime(static_cast<CResultSet::TimeType>(params[1])));
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '{}'", ret_val);
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '{}'", ret_val);
 	return ret_val;
 }
 
@@ -2045,12 +2045,12 @@ AMX_DECLARE_NATIVE(Native::cache_get_query_string)
 	auto resultset = CResultSetManager::Get()->GetActiveResultSet();
 	if (resultset == nullptr)
 	{
-		CLog::Get()->LogNative(LogLevel::ERROR, "no active cache");
+		CLog::Get()->LogNative(MySQLLogLevel::ERROR, "no active cache");
 		return 0;
 	}
 
 	amx_SetCppString(amx, params[1], resultset->GetExecutedQuery(), params[2]);
 
-	CLog::Get()->LogNative(LogLevel::DEBUG, "return value: '1'");
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '1'");
 	return 1;
 }

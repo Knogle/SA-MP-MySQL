@@ -18,7 +18,7 @@ const string CHandle::ModuleName{ "handle" };
 
 CHandle::~CHandle()
 {
-	CLog::Get()->Log(LogLevel::DEBUG, "CHandle::~CHandle(this={})",
+	CLog::Get()->Log(MySQLLogLevel::DEBUG, "CHandle::~CHandle(this={})",
 					 static_cast<const void *>(this));
 
 	if (m_MainConnection != nullptr)
@@ -33,7 +33,7 @@ CHandle::~CHandle()
 
 bool CHandle::Execute(ExecutionType type, Query_t query)
 {
-	CLog::Get()->Log(LogLevel::DEBUG, "CHandle::Execute(this={}, type={}, query={})",
+	CLog::Get()->Log(MySQLLogLevel::DEBUG, "CHandle::Execute(this={}, type={}, query={})",
 					 static_cast<const void *>(this),
 					 static_cast<std::underlying_type<ExecutionType>::type>(type),
 					 static_cast<const void *>(query.get()));
@@ -58,14 +58,14 @@ bool CHandle::Execute(ExecutionType type, Query_t query)
 		}
 	}
 
-	CLog::Get()->Log(LogLevel::DEBUG,
+	CLog::Get()->Log(MySQLLogLevel::DEBUG,
 					 "CHandle::Execute - return value: {}", return_val);
 	return return_val;
 }
 
 bool CHandle::GetErrorId(unsigned int &errorid)
 {
-	CLog::Get()->Log(LogLevel::DEBUG, "CHandle::GetErrorId(this={})",
+	CLog::Get()->Log(MySQLLogLevel::DEBUG, "CHandle::GetErrorId(this={})",
 					 static_cast<const void *>(this));
 
 	if (m_MainConnection == nullptr)
@@ -74,7 +74,7 @@ bool CHandle::GetErrorId(unsigned int &errorid)
 	string unused_errormsg;
 	bool return_val = m_MainConnection->GetError(errorid, unused_errormsg);
 
-	CLog::Get()->Log(LogLevel::DEBUG,
+	CLog::Get()->Log(MySQLLogLevel::DEBUG,
 					 "CHandle::GetErrorId - " \
 					 "return value: {}, error id: '{}', error msg: '{}'",
 					 return_val, errorid, unused_errormsg);
@@ -84,7 +84,7 @@ bool CHandle::GetErrorId(unsigned int &errorid)
 
 bool CHandle::GetErrorMessage(string &error)
 {
-	CLog::Get()->Log(LogLevel::DEBUG, "CHandle::GetErrorMessage(this={})",
+	CLog::Get()->Log(MySQLLogLevel::DEBUG, "CHandle::GetErrorMessage(this={})",
 					 static_cast<const void *>(this));
 
 	if (m_MainConnection == nullptr)
@@ -93,7 +93,7 @@ bool CHandle::GetErrorMessage(string &error)
 	unsigned int unused_errorid;
 	bool return_val = m_MainConnection->GetError(unused_errorid, error);
 
-	CLog::Get()->Log(LogLevel::DEBUG,
+	CLog::Get()->Log(MySQLLogLevel::DEBUG,
 					 "CHandle::GetErrorMessage - " \
 					 "return value: {}, error id: '{}', error msg: '{}'",
 					 return_val, unused_errorid, error);
@@ -103,7 +103,7 @@ bool CHandle::GetErrorMessage(string &error)
 
 bool CHandle::EscapeString(const char *src, string &dest)
 {
-	CLog::Get()->Log(LogLevel::DEBUG, "CHandle::EscapeString(this={}, src='{}')",
+	CLog::Get()->Log(MySQLLogLevel::DEBUG, "CHandle::EscapeString(this={}, src='{}')",
 					 static_cast<const void *>(this), src ? src : "(nullptr)");
 
 	if (m_MainConnection == nullptr)
@@ -111,7 +111,7 @@ bool CHandle::EscapeString(const char *src, string &dest)
 
 	bool return_val = m_MainConnection->EscapeString(src, dest);
 
-	CLog::Get()->Log(LogLevel::DEBUG,
+	CLog::Get()->Log(MySQLLogLevel::DEBUG,
 					 "CHandle::EscapeString - return value: {}, escaped string: '{}'",
 					 return_val, dest);
 
@@ -120,7 +120,7 @@ bool CHandle::EscapeString(const char *src, string &dest)
 
 bool CHandle::SetCharacterSet(string charset)
 {
-	CLog::Get()->Log(LogLevel::DEBUG,
+	CLog::Get()->Log(MySQLLogLevel::DEBUG,
 					 "CHandle::SetCharacterSet(this={}, charset='{}')",
 					 static_cast<const void *>(this), charset);
 
@@ -135,7 +135,7 @@ bool CHandle::SetCharacterSet(string charset)
 
 bool CHandle::GetCharacterSet(string &charset)
 {
-	CLog::Get()->Log(LogLevel::DEBUG, "CHandle::GetCharacterSet(this={})",
+	CLog::Get()->Log(MySQLLogLevel::DEBUG, "CHandle::GetCharacterSet(this={})",
 					 static_cast<const void *>(this));
 
 	if (m_MainConnection == nullptr)
@@ -146,7 +146,7 @@ bool CHandle::GetCharacterSet(string &charset)
 
 bool CHandle::GetStatus(string &stat)
 {
-	CLog::Get()->Log(LogLevel::DEBUG, "CHandle::GetStatus(this={})",
+	CLog::Get()->Log(MySQLLogLevel::DEBUG, "CHandle::GetStatus(this={})",
 					 static_cast<const void *>(this));
 
 	if (m_MainConnection == nullptr)
@@ -157,7 +157,7 @@ bool CHandle::GetStatus(string &stat)
 
 unsigned int CHandle::GetUnprocessedQueryCount()
 {
-	CLog::Get()->Log(LogLevel::DEBUG, "CHandle::GetUnprocessedQueryCount(this={})",
+	CLog::Get()->Log(MySQLLogLevel::DEBUG, "CHandle::GetUnprocessedQueryCount(this={})",
 					 static_cast<const void *>(this));
 
 	unsigned int count = m_ThreadedConnection->GetUnprocessedQueryCount();
@@ -173,14 +173,14 @@ Handle_t CHandleManager::Create(const char *host, const char *user,
 								const char *pass, const char *db,
 								const COptions *options, CError<CHandle> &error)
 {
-	CLog::Get()->Log(LogLevel::DEBUG,
+	CLog::Get()->Log(MySQLLogLevel::DEBUG,
 					 "CHandleManager::Create(this={}, host='{}', user='{}', pass='****', db='{}', options={})",
 					 static_cast<const void *>(this),
 					 host ? host : "(nullptr)",
 					 user ? user : "(nullptr)",
 					 db ? db : "(nullptr)",
 					 static_cast<const void *>(options));
-	CLog::Get()->Log(LogLevel::INFO, "Creating new connection handle...");
+	CLog::Get()->Log(MySQLLogLevel::INFO, "Creating new connection handle...");
 
 	if (host == nullptr || strlen(host) == 0)
 	{
@@ -198,7 +198,7 @@ Handle_t CHandleManager::Create(const char *host, const char *user,
 		pass = "";
 
 	if (strlen(pass) == 0)
-		CLog::Get()->LogNative(LogLevel::WARNING, "no password specified");
+		CLog::Get()->LogNative(MySQLLogLevel::WARNING, "no password specified");
 
 	if (db == nullptr || strlen(db) == 0)
 	{
@@ -229,7 +229,7 @@ Handle_t CHandleManager::Create(const char *host, const char *user,
 				if (COptionManager::Get()->GetGlobalOption(
 					COptionManager::GlobalOption::DUPLICATE_CONNECTION_WARNING))
 				{
-					CLog::Get()->Log(LogLevel::WARNING,
+					CLog::Get()->Log(MySQLLogLevel::WARNING,
 									 "duplicate connection detected: " \
 									 "handle id {} already exists with " \
 									 "host = '{}', username = '{}' and database = '{}'",
@@ -257,9 +257,9 @@ Handle_t CHandleManager::Create(const char *host, const char *user,
 
 	m_Handles.emplace(id, handle);
 
-	CLog::Get()->Log(LogLevel::INFO,
+	CLog::Get()->Log(MySQLLogLevel::INFO,
 					 "Connection handle with id '{}' successfully created.", id);
-	CLog::Get()->Log(LogLevel::DEBUG,
+	CLog::Get()->Log(MySQLLogLevel::DEBUG,
 					 "CHandleManager::Create - new handle = {}",
 					 static_cast<const void *>(handle));
 
@@ -268,7 +268,7 @@ Handle_t CHandleManager::Create(const char *host, const char *user,
 
 Handle_t CHandleManager::CreateFromFile(string file_path, CError<CHandle> &error)
 {
-	CLog::Get()->Log(LogLevel::DEBUG,
+	CLog::Get()->Log(MySQLLogLevel::DEBUG,
 					 "CHandleManager::CreateFromFile(this={}, file_path='{}')",
 					 static_cast<const void *>(this), file_path);
 
@@ -414,7 +414,7 @@ Handle_t CHandleManager::CreateFromFile(string file_path, CError<CHandle> &error
 		}
 	}
 
-	CLog::Get()->Log(LogLevel::DEBUG,
+	CLog::Get()->Log(MySQLLogLevel::DEBUG,
 					 "CHandleManager::CreateFromFile - new options = {} (id '{}')",
 					 static_cast<const void *>(options), options_id);
 
@@ -424,7 +424,7 @@ Handle_t CHandleManager::CreateFromFile(string file_path, CError<CHandle> &error
 
 bool CHandleManager::Destroy(Handle_t &handle)
 {
-	CLog::Get()->Log(LogLevel::DEBUG, "CHandleManager::Destroy(this={}, handle={})",
+	CLog::Get()->Log(MySQLLogLevel::DEBUG, "CHandleManager::Destroy(this={}, handle={})",
 					 static_cast<const void *>(this),
 					 static_cast<const void *>(handle));
 

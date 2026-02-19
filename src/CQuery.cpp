@@ -5,7 +5,7 @@
 
 bool CQuery::Execute(MYSQL *connection)
 {
-	CLog::Get()->Log(LogLevel::DEBUG, "CQuery::Execute(this={}, connection={})",
+	CLog::Get()->Log(MySQLLogLevel::DEBUG, "CQuery::Execute(this={}, connection={})",
 					 static_cast<const void *>(this),
 					 static_cast<const void *>(connection));
 
@@ -23,9 +23,9 @@ bool CQuery::Execute(MYSQL *connection)
 			error_str ? error_str : "(nullptr)");
 
 		if (!m_DbgInfo.empty())
-			CLog::Get()->Log(LogLevel::ERROR, m_DbgInfo, msg.c_str());
+			CLog::Get()->Log(MySQLLogLevel::ERROR, m_DbgInfo, msg.c_str());
 		else
-			CLog::Get()->Log(LogLevel::ERROR, msg.c_str());
+			CLog::Get()->Log(MySQLLogLevel::ERROR, msg.c_str());
 		return false;
 	}
 
@@ -33,7 +33,7 @@ bool CQuery::Execute(MYSQL *connection)
 		query_exec_time_milli = std::chrono::duration_cast<std::chrono::milliseconds>(exec_time).count(),
 		query_exec_time_micro = std::chrono::duration_cast<std::chrono::microseconds>(exec_time).count();
 
-	CLog::Get()->Log(LogLevel::INFO,
+	CLog::Get()->Log(MySQLLogLevel::INFO,
 		"query \"{}\" successfully executed within {}.{} milliseconds",
 		m_Query, query_exec_time_milli,
 		query_exec_time_micro - (query_exec_time_milli * 1000));

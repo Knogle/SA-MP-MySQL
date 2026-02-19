@@ -7,10 +7,7 @@
             "platform": "linux",
             "archive": true,
             "includes": ["mysql-.+\\/pawno\\/include"],
-            "plugins": ["mysql-.+\\/plugins\\/mysql.so"],
-            "files": {
-                "mysql-.+\\/log-core.so": "log-core.so"
-            }
+            "plugins": ["mysql-.+\\/plugins\\/mysql.so"]
         },
         {
             "name": "^mysql-.+-win(32)?.zip$",
@@ -19,7 +16,6 @@
             "includes": ["mysql-.+\\/pawno\\/include"],
             "plugins": ["mysql-.+\\/plugins\\/mysql.dll"],
             "files": {
-                "mysql-.+\\/log-core.dll": "log-core.dll",
                 "mysql-.+\\/libmariadb.dll": "libmariadb.dll"
             }
         }

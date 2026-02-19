@@ -251,7 +251,7 @@ enum E_LOGLEVEL
 };
 #endif
 
-#pragma deprecated Configuring log levels is now done through the "log-config.yml" file
+#pragma deprecated Logging is configured through open.mp config keys (logging.mysql*)
 stock mysql_log(E_LOGLEVEL:loglevel = ERROR | WARNING)
 {
 	#pragma unused loglevel
