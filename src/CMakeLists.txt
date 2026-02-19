@@ -125,11 +125,26 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/a_mysql.inc" DESTINATION "pawno/inclu
 install(FILES "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION "./")
 if(WIN32 AND MYSQLCAPI_LIBRARY_SHARED)
 	install(FILES "${MYSQLCAPI_LIBRARY_SHARED}" DESTINATION "./")
-elseif(UNIX AND MYSQLCAPI_LIBRARY_SHARED AND NOT BUILD_STATIC)
-	get_filename_component(MYSQLCAPI_LIBRARY_SHARED_REALPATH
-		"${MYSQLCAPI_LIBRARY_SHARED}" REALPATH)
-	if(EXISTS "${MYSQLCAPI_LIBRARY_SHARED_REALPATH}")
-		install(FILES "${MYSQLCAPI_LIBRARY_SHARED_REALPATH}" DESTINATION "./")
+elseif(UNIX AND NOT BUILD_STATIC)
+	set(_MYSQL_RUNTIME_LIB_CANDIDATES
+		"${MYSQLCAPI_LIBRARY_SHARED}"
+		"${MYSQLCAPI_LIBRARY}"
+		"${PROJECT_SOURCE_DIR}/libs/mariadb-connector-c/lib32/libmariadb.so.3"
+	)
+
+	set(_MYSQL_RUNTIME_LIB_TO_INSTALL "")
+	foreach(_candidate IN LISTS _MYSQL_RUNTIME_LIB_CANDIDATES)
+		if(_candidate AND EXISTS "${_candidate}")
+			get_filename_component(_candidate_real "${_candidate}" REALPATH)
+			if(EXISTS "${_candidate_real}")
+				set(_MYSQL_RUNTIME_LIB_TO_INSTALL "${_candidate_real}")
+				break()
+			endif()
+		endif()
+	endforeach()
+
+	if(_MYSQL_RUNTIME_LIB_TO_INSTALL)
+		install(FILES "${_MYSQL_RUNTIME_LIB_TO_INSTALL}" DESTINATION "./")
 	endif()
 endif()
 
