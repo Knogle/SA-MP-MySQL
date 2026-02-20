@@ -38,6 +38,8 @@ jobs:
           sudo dpkg --add-architecture i386
           sudo apt-get update
           sudo apt-get install -y gcc-multilib g++-multilib libssl-dev:i386
+          test -f /usr/lib/i386-linux-gnu/libssl.so
+          test -f /usr/lib/i386-linux-gnu/libcrypto.so
 
       - name: Install MariaDB Connector/C for Windows (x86)
         if: runner.os == 'Windows'
@@ -62,6 +64,8 @@ jobs:
           cmake -S . -B build
           -DCMAKE_BUILD_TYPE=Release
           -DFORCE_32_BIT=ON
+          -DOPENSSL_SSL_LIBRARY=/usr/lib/i386-linux-gnu/libssl.so
+          -DOPENSSL_CRYPTO_LIBRARY=/usr/lib/i386-linux-gnu/libcrypto.so
           -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 
       - name: Configure (Windows)
