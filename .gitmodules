@@ -16,3 +16,6 @@
 [submodule "libs/boost"]
 	path = libs/boost
 	url = https://github.com/boostorg/boost.git
+[submodule "libs/mariadb-connector-c"]
+	path = libs/mariadb-connector-c
+	url = https://github.com/mariadb-corporation/mariadb-connector-c.git

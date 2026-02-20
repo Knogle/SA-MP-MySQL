@@ -5,8 +5,4 @@
 # undef ERROR
 #endif
 
-#ifdef LINUX
-# include <mysql/mysql.h>
-#else
-# include <mysql.h>
-#endif
+#include <mysql.h>

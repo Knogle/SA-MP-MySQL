@@ -45,7 +45,7 @@ The component supports open.mp config-based logging toggles:
 If you use the official release archive, keep the bundled `libmariadb.so.3` in the server root
 (`components/..`) and copy `mysql.so` to `components/`.
 
-If you build/deploy manually, install the 32-bit MariaDB connector library via your distro:
+If you build/deploy manually without the bundled source build, install the 32-bit MariaDB connector library via your distro:
 
 - Fedora:
   - `sudo dnf install mariadb-connector-c.i686`
@@ -55,6 +55,9 @@ If you build/deploy manually, install the 32-bit MariaDB connector library via y
   - `sudo apt install libmariadb3:i386`
 - CentOS/RHEL/Alma/Rocky:
   - `sudo dnf install mariadb-connector-c.i686`
+
+If you build this repository with the bundled Connector/C submodule (`BUILD_BUNDLED_MARIADB_CONNECTOR=ON`, default on Linux),
+`libmariadb.so.3` is built from source and packaged automatically.
 
 ## Build from Source
 
@@ -69,6 +72,17 @@ git submodule update --init --recursive
 ### Linux
 
 Default build is 32-bit (`FORCE_32_BIT=ON`).
+
+For `FORCE_32_BIT=ON`, ensure 32-bit OpenSSL development files are installed:
+
+- Ubuntu/Debian:
+  - `sudo dpkg --add-architecture i386`
+  - `sudo apt update`
+  - `sudo apt install libssl-dev:i386`
+- Fedora:
+  - `sudo dnf install openssl-devel.i686`
+- CentOS/RHEL/Alma/Rocky:
+  - `sudo dnf install openssl-devel.i686`
 
 ```bash
 cmake -S . -B build -DFORCE_32_BIT=ON -DCMAKE_POSITION_INDEPENDENT_CODE=ON
