@@ -109,6 +109,7 @@ public:
 
 	void SetCore(ICore *core);
 	void ConfigureFromCore();
+	void SetLogMask(unsigned int log_mask);
 	void Flush();
 
 private:

@@ -17,6 +17,12 @@ constexpr unsigned int DEFAULT_LOG_MASK =
 	static_cast<unsigned int>(MySQLLogLevel::WARNING)
 	| static_cast<unsigned int>(MySQLLogLevel::ERROR);
 
+constexpr unsigned int VALID_LOG_MASK =
+	static_cast<unsigned int>(MySQLLogLevel::DEBUG)
+	| static_cast<unsigned int>(MySQLLogLevel::INFO)
+	| static_cast<unsigned int>(MySQLLogLevel::WARNING)
+	| static_cast<unsigned int>(MySQLLogLevel::ERROR);
+
 ::LogLevel ToOmpLevel(MySQLLogLevel level)
 {
 	switch (level)
@@ -113,6 +119,15 @@ void CLog::ConfigureFromCore()
 	std::lock_guard<std::mutex> lock_guard(m_StateMutex);
 	m_Enabled = enabled;
 	m_LogMask = (log_mask == 0) ? DEFAULT_LOG_MASK : log_mask;
+}
+
+void CLog::SetLogMask(unsigned int log_mask)
+{
+	const unsigned int sanitized_mask = log_mask & VALID_LOG_MASK;
+
+	std::lock_guard<std::mutex> lock_guard(m_StateMutex);
+	m_Enabled = sanitized_mask != 0;
+	m_LogMask = sanitized_mask;
 }
 
 void CLog::Enqueue(MySQLLogLevel level, string &&message)

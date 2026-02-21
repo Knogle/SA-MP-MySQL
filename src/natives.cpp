@@ -410,6 +410,15 @@ AMX_DECLARE_NATIVE(Native::orm_setkey)
 
 
 
+// native mysql_log(E_LOGLEVEL:loglevel = ERROR | WARNING);
+AMX_DECLARE_NATIVE(Native::mysql_log)
+{
+	CScopedDebugInfo dbg_info(amx, "mysql_log", params, "d");
+	CLog::Get()->SetLogMask(static_cast<unsigned int>(params[1]));
+	CLog::Get()->LogNative(MySQLLogLevel::DEBUG, "return value: '1'");
+	return 1;
+}
+
 // native MySQL:mysql_connect(const host[], const user[], const password[],
 //							  const database[], MySQLOpt:option_id = MySQLOpt:0);
 AMX_DECLARE_NATIVE(Native::mysql_connect)

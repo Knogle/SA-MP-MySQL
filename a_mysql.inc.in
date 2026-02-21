@@ -252,7 +252,4 @@ enum E_LOGLEVEL
 #endif
 
 #pragma deprecated Logging is configured through open.mp config keys (logging.mysql*)
-stock mysql_log(E_LOGLEVEL:loglevel = ERROR | WARNING)
-{
-	#pragma unused loglevel
-}
+native mysql_log(E_LOGLEVEL:loglevel = ERROR | WARNING);
