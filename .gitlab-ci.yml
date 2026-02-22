@@ -7,6 +7,7 @@ workflow:
 
 stages:
   - build
+  - test
   - package
   - release
 
@@ -54,6 +55,43 @@ build_windows:
     - 'if (!(Test-Path "$MariaRoot\bin\libmariadb.dll")) { throw "Missing runtime DLL in $MariaRoot\bin" }'
     - 'cmake -S . -B build -G "Visual Studio 17 2022" -A Win32 -DMYSQLCAPI_ROOT_DIR="$MariaRoot"'
     - 'cmake --build build --config Release --parallel'
+
+unit_tests_linux:
+  stage: test
+  image: ubuntu:24.04
+  services:
+    - name: mariadb:11
+      alias: mariadb
+      variables:
+        MARIADB_ROOT_PASSWORD: root
+        MARIADB_DATABASE: mysqlunittest
+        MARIADB_USER: mysqlunittest
+        MARIADB_PASSWORD: mysqlunittest
+  rules:
+    - if: '$CI_COMMIT_TAG'
+      when: never
+    - when: on_success
+  before_script:
+    - dpkg --add-architecture i386
+    - apt-get update
+    - apt-get install -y --no-install-recommends ca-certificates git cmake build-essential pkg-config binutils gcc-multilib g++-multilib libssl-dev:i386 mariadb-client jq curl unzip socat
+    - test -f /usr/lib/i386-linux-gnu/libssl.so
+    - test -f /usr/lib/i386-linux-gnu/libcrypto.so
+  script:
+    - 'for i in $(seq 1 60); do mysqladmin ping -h mariadb -P 3306 -u mysqlunittest -pmysqlunittest --silent && break; sleep 2; done'
+    - 'socat TCP-LISTEN:3306,fork,reuseaddr,bind=127.0.0.1 TCP:mariadb:3306 >/tmp/socat-mariadb.log 2>&1 &'
+    - 'for i in $(seq 1 30); do mysqladmin ping -h 127.0.0.1 -P 3306 -u mysqlunittest -pmysqlunittest --silent && break; sleep 2; done'
+    - 'mysql -h 127.0.0.1 -P 3306 -u mysqlunittest -pmysqlunittest -D mysqlunittest -e "SELECT 1;"'
+    - 'git clone --depth 1 https://github.com/openmultiplayer/qawno.git /tmp/qawno'
+    - cmake -S . -B build-ut -DCMAKE_BUILD_TYPE=Release -DFORCE_32_BIT=ON -DOPENSSL_SSL_LIBRARY=/usr/lib/i386-linux-gnu/libssl.so -DOPENSSL_CRYPTO_LIBRARY=/usr/lib/i386-linux-gnu/libcrypto.so -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+    - cmake --build build-ut --parallel
+    - scripts/ci/check-linux-mysql-symbols.sh build-ut/src/mysql.so
+    - BUILD_DIR=build-ut OPEN_MP_INCLUDE_DIR=/tmp/qawno/include DB_HOST=127.0.0.1 DB_USER=mysqlunittest DB_PASS=mysqlunittest DB_NAME=mysqlunittest WORK_DIR="$CI_PROJECT_DIR/unit-test-logs" UNIT_TEST_TIMEOUT=90s scripts/ci/run-openmp-unit-tests.sh
+  artifacts:
+    when: always
+    paths:
+      - unit-test-logs/*.log
+    expire_in: 1 week
 
 package_linux:
   stage: package

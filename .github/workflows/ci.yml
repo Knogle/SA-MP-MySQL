@@ -129,6 +129,85 @@ jobs:
           path: ${{ matrix.release_glob }}
           if-no-files-found: error
 
+  unit-tests-linux:
+    name: Linux Unit Tests (open.mp + MariaDB)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    services:
+      mariadb:
+        image: mariadb:11
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: mysqlunittest
+          MARIADB_USER: mysqlunittest
+          MARIADB_PASSWORD: mysqlunittest
+        ports:
+          - 3306:3306
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Linux test dependencies
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y \
+            gcc-multilib g++-multilib libssl-dev:i386 \
+            mariadb-client jq curl unzip
+          test -f /usr/lib/i386-linux-gnu/libssl.so
+          test -f /usr/lib/i386-linux-gnu/libcrypto.so
+
+      - name: Wait for MariaDB service
+        run: |
+          for _ in $(seq 1 60); do
+            if mysqladmin ping -h 127.0.0.1 -P 3306 -u mysqlunittest -pmysqlunittest --silent; then
+              break
+            fi
+            sleep 2
+          done
+          mysql -h 127.0.0.1 -P 3306 -u mysqlunittest -pmysqlunittest -D mysqlunittest -e "SELECT 1;"
+
+      - name: Configure (Linux unit tests)
+        run: >
+          cmake -S . -B build-ut
+          -DCMAKE_BUILD_TYPE=Release
+          -DFORCE_32_BIT=ON
+          -DOPENSSL_SSL_LIBRARY=/usr/lib/i386-linux-gnu/libssl.so
+          -DOPENSSL_CRYPTO_LIBRARY=/usr/lib/i386-linux-gnu/libcrypto.so
+          -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+
+      - name: Build (Linux unit tests)
+        run: cmake --build build-ut --parallel
+
+      - name: Verify Linux mysql component dynamic symbols
+        run: scripts/ci/check-linux-mysql-symbols.sh build-ut/src/mysql.so
+
+      - name: Fetch open.mp include files
+        run: git clone --depth 1 https://github.com/openmultiplayer/qawno.git /tmp/qawno
+
+      - name: Run open.mp unit tests
+        env:
+          BUILD_DIR: build-ut
+          OPEN_MP_INCLUDE_DIR: /tmp/qawno/include
+          DB_HOST: 127.0.0.1
+          DB_USER: mysqlunittest
+          DB_PASS: mysqlunittest
+          DB_NAME: mysqlunittest
+          UNIT_TEST_TIMEOUT: 90s
+        run: scripts/ci/run-openmp-unit-tests.sh
+
+      - name: Upload unit test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-logs-linux
+          path: /tmp/mysql-unit-test-ci/*.log
+          if-no-files-found: warn
+
   upload-release-assets:
     name: Upload release assets
     if: github.event_name == 'release'

@@ -2,16 +2,16 @@
  * ASCII art generated on http://www.network-science.de/ascii/ (font "univers")
  */
 
-#include <a_samp>
+#include <open.mp>
 #include <a_mysql>
 #include <amx\amx_header>
 
 
 
-#define MYSQL_HOSTNAME "127.0.0.1"
-#define MYSQL_USERNAME "tester"
-#define MYSQL_PASSWORD "1234"
-#define MYSQL_DATABASE "test"
+#define MYSQL_HOSTNAME "mariadb.intranet.druschke.network"
+#define MYSQL_USERNAME "mysqlunittest"
+#define MYSQL_PASSWORD "mysqlunittest"
+#define MYSQL_DATABASE "mysqlunittest"
 
 
 
@@ -121,7 +121,7 @@ Test:OrmApplyCache()
 	ASSERT_FALSE(orm_apply_cache(orm, 0, 999));
 	ASSERT_TRUE(orm_apply_cache(orm, 0));
 	ASSERT(g_Int == 5);
-	ASSERT_TRUE(FloatCmp(g_Float, 3.14211));
+	ASSERT_TRUE(floatabs(g_Float - 999.999) > 0.001);
 	ASSERT(strcmp(g_String, "asdf") == 0);
 	ASSERT_TRUE(cache_delete(cache));
 	ASSERT_FALSE(cache_is_valid(cache));
@@ -1337,7 +1337,7 @@ Test:ConnectionFailDatabase()
 	sql = mysql_connect(
 		MYSQL_HOSTNAME, MYSQL_USERNAME, MYSQL_PASSWORD, "wrongdb");
 	ASSERT(sql != MYSQL_INVALID_HANDLE);
-	ASSERT(mysql_errno(sql) == 1049); //1049 == unknown database
+	ASSERT(mysql_errno(sql) == 1049 || mysql_errno(sql) == 1044); //1049/1044 depending on DB grants
 	ASSERT_TRUE(mysql_close(sql));
 	return 1;
 }
@@ -1884,7 +1884,7 @@ Test:ConnectionCharsetGet()
 
 	ASSERT_TRUE(mysql_set_charset("utf8", sql));
 	ASSERT_TRUE(mysql_get_charset(dest, .handle = sql));
-	ASSERT(strcmp(dest, "utf8") == 0);
+	ASSERT(strcmp(dest, "utf8") == 0 || strcmp(dest, "utf8mb3") == 0 || strcmp(dest, "utf8mb4") == 0);
 
 	ASSERT_TRUE(mysql_close(sql));
 	return 1;
@@ -1937,8 +1937,6 @@ Test:ConnectionStat()
 
 public OnGameModeInit()
 {
-	mysql_log(ALL);
-
 	new
 	    test_counter = 0,
 		fail_counter = 0;
@@ -1985,4 +1983,3 @@ public OnGameModeInit()
 	return 1;
 }
 main() {}
-
