@@ -1,5 +1,7 @@
 #include "mysql.hpp"
 
+#include <cstdlib>
+
 #include "CQuery.hpp"
 #include "CConnection.hpp"
 #include "CDispatcher.hpp"
@@ -29,6 +31,21 @@ CConnection::CConnection(const char *host, const char *user, const char *passw,
 						 "(not enough memory available)");
 		return;
 	}
+
+	// Keep non-TLS servers compatible by default. Some MariaDB client builds
+	// enable strict peer verification by default, which implicitly forces SSL.
+	// This aligns runtime behavior with legacy SA:MP/open.mp deployments.
+#if defined(__linux__)
+	setenv("MARIADB_TLS_DISABLE_PEER_VERIFICATION", "1", 0);
+#endif
+#if defined(MYSQL_OPT_SSL_ENFORCE)
+	my_bool ssl_enforce = 0;
+	mysql_options(m_Connection, MYSQL_OPT_SSL_ENFORCE, &ssl_enforce);
+#endif
+#if defined(MYSQL_OPT_SSL_VERIFY_SERVER_CERT)
+	my_bool ssl_verify_server_cert = 0;
+	mysql_options(m_Connection, MYSQL_OPT_SSL_VERIFY_SERVER_CERT, &ssl_verify_server_cert);
+#endif
 
 	if (options->GetOption<bool>(COptions::Type::SSL_ENABLE))
 	{
