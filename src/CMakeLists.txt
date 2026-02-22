@@ -97,6 +97,9 @@ if(MSVC)
 		_ENABLE_ATOMIC_ALIGNMENT_FIX
 	)
 elseif(UNIX)
+	# Keep symbol hiding scoped to this component target so subprojects
+	# (e.g. bundled libmariadb) still export their public ABI.
+	target_compile_options(mysql PRIVATE -fvisibility=hidden)
 	target_compile_definitions(mysql PRIVATE LINUX)
 endif()
 

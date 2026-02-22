@@ -16,10 +16,6 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/libs/cmake")
 
 if(UNIX)
-	#hide non-exported symbols
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
-
 	#force 32bit compilation when requested
 	if(FORCE_32_BIT)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32")
