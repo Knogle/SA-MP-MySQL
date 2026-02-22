@@ -76,14 +76,13 @@ TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "${TMP_DIR}"' EXIT
 
 nm -D "${PLUGIN_PATH}" \
-	| awk '/ U mysql_/ { print $3 }' \
+	| awk '$NF ~ /^mysql_/ { print $NF }' \
 	| sed 's/@.*//' \
 	| LC_ALL=C sort -u > "${TMP_DIR}/mysql_imports.txt"
 
 nm -D --defined-only "${MARIADB_PATH}" \
-	| awk '{ print $3 }' \
+	| awk '$NF ~ /^mysql_/ { print $NF }' \
 	| sed 's/@.*//' \
-	| grep -E '^mysql_' \
 	| LC_ALL=C sort -u > "${TMP_DIR}/mysql_exports.txt"
 
 if [[ ! -s "${TMP_DIR}/mysql_imports.txt" ]]; then
