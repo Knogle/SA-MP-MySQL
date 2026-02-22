@@ -13,9 +13,9 @@ Current maintainer: **[Knogle](https://github.com/Knogle)**
 
 ## R42 Highlights
 
-- Full GitHub Actions pipeline for **Linux and Windows** builds.
+- CI pipelines for **GitHub Actions and GitLab CI** (Linux + optional Windows).
 - CI checks on **every push and pull request**.
-- Automated package creation and upload on **GitHub Release publish**.
+- Automated package creation for **GitHub and GitLab releases**.
 - Build and compatibility refresh for modern open.mp environments.
 - Removed old `samp-log-core`/logcore dependency; logging now uses open.mp core logging (`ICore::logLn`) directly.
 
@@ -109,19 +109,25 @@ Output:
 ## CI/CD
 
 Workflow file: `.github/workflows/ci.yml`
+GitLab pipeline file: `.gitlab-ci.yml`
 
 Triggers:
 
 - `push`
-- `pull_request`
-- `release` (`published`)
-- `workflow_dispatch`
+- `pull_request` (GitHub) / Merge Request pipeline (GitLab)
+- `release` (`published`, GitHub) / Git tag pipeline (GitLab)
+- `workflow_dispatch` (GitHub) / Run pipeline (`web`, GitLab)
 
 Release behavior:
 
-- Builds Linux and Windows artifacts.
-- Packages both builds via CPack.
-- Uploads packages automatically to the matching GitHub Release.
+- Builds Linux and (optionally) Windows artifacts.
+- Packages tagged builds via CPack.
+- Publishes release entries automatically with package asset links.
+
+### GitLab Windows runner setup
+
+Set the CI/CD variable `WINDOWS_RUNNER_TAG` to the tag of your Windows runner.
+If this variable is empty, GitLab CI builds/releases Linux only.
 
 ## Compatibility
 

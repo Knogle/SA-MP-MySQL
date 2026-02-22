@@ -13,6 +13,7 @@ __*/
 !.github/
 !.github/workflows/
 !.github/workflows/*.yml
+!.gitlab-ci.yml
 
 #Visual Studio
 *.sdf

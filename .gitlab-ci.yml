@@ -1,0 +1,161 @@
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+    - when: never
+
+stages:
+  - build
+  - package
+  - release
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+  WINDOWS_RUNNER_TAG: ""
+
+build_linux:
+  stage: build
+  image: ubuntu:24.04
+  rules:
+    - if: '$CI_COMMIT_TAG'
+      when: never
+    - when: on_success
+  before_script:
+    - dpkg --add-architecture i386
+    - apt-get update
+    - apt-get install -y --no-install-recommends ca-certificates git cmake build-essential pkg-config binutils gcc-multilib g++-multilib libssl-dev:i386
+    - test -f /usr/lib/i386-linux-gnu/libssl.so
+    - test -f /usr/lib/i386-linux-gnu/libcrypto.so
+  script:
+    - cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DFORCE_32_BIT=ON -DOPENSSL_SSL_LIBRARY=/usr/lib/i386-linux-gnu/libssl.so -DOPENSSL_CRYPTO_LIBRARY=/usr/lib/i386-linux-gnu/libcrypto.so -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+    - cmake --build build --parallel
+    - scripts/ci/check-linux-mysql-symbols.sh
+
+build_windows:
+  stage: build
+  tags:
+    - $WINDOWS_RUNNER_TAG
+  rules:
+    - if: '$CI_COMMIT_TAG'
+      when: never
+    - if: '$WINDOWS_RUNNER_TAG == ""'
+      when: never
+    - when: on_success
+  script:
+    - '$ErrorActionPreference = "Stop"'
+    - '$VcpkgRoot = "$env:CI_PROJECT_DIR\vcpkg"'
+    - 'git clone --depth 1 https://github.com/microsoft/vcpkg $VcpkgRoot'
+    - '& "$VcpkgRoot\bootstrap-vcpkg.bat" -disableMetrics'
+    - '& "$VcpkgRoot\vcpkg.exe" install libmariadb:x86-windows'
+    - '$MariaRoot = "$VcpkgRoot\installed\x86-windows"'
+    - 'if (!(Test-Path "$MariaRoot\include")) { throw "Missing include dir in $MariaRoot" }'
+    - 'if (!(Test-Path "$MariaRoot\lib\libmariadb.lib")) { throw "Missing import library in $MariaRoot\lib" }'
+    - 'if (!(Test-Path "$MariaRoot\bin\libmariadb.dll")) { throw "Missing runtime DLL in $MariaRoot\bin" }'
+    - 'cmake -S . -B build -G "Visual Studio 17 2022" -A Win32 -DMYSQLCAPI_ROOT_DIR="$MariaRoot"'
+    - 'cmake --build build --config Release --parallel'
+
+package_linux:
+  stage: package
+  image: ubuntu:24.04
+  rules:
+    - if: '$CI_COMMIT_TAG'
+    - when: never
+  before_script:
+    - dpkg --add-architecture i386
+    - apt-get update
+    - apt-get install -y --no-install-recommends ca-certificates git cmake build-essential pkg-config binutils gcc-multilib g++-multilib libssl-dev:i386
+    - test -f /usr/lib/i386-linux-gnu/libssl.so
+    - test -f /usr/lib/i386-linux-gnu/libcrypto.so
+  script:
+    - cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DFORCE_32_BIT=ON -DOPENSSL_SSL_LIBRARY=/usr/lib/i386-linux-gnu/libssl.so -DOPENSSL_CRYPTO_LIBRARY=/usr/lib/i386-linux-gnu/libcrypto.so -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+    - cmake --build build --parallel
+    - scripts/ci/check-linux-mysql-symbols.sh
+    - cmake --build build --target package --parallel
+    - 'set -- build/*.tar.gz'
+    - '[ -e "$1" ]'
+    - 'PKG="$1"'
+    - 'tar -tzf "$PKG" | grep -E "^[^/]+/components/mysql\.so$"'
+    - 'tar -tzf "$PKG" | grep -E "^[^/]+/libmariadb\.so\.3$"'
+    - mkdir -p dist
+    - 'cp "$PKG" dist/mysql-linux.tar.gz'
+  artifacts:
+    paths:
+      - dist/mysql-linux.tar.gz
+    expire_in: 1 year
+
+package_windows:
+  stage: package
+  tags:
+    - $WINDOWS_RUNNER_TAG
+  rules:
+    - if: '$CI_COMMIT_TAG && $WINDOWS_RUNNER_TAG != ""'
+    - when: never
+  script:
+    - '$ErrorActionPreference = "Stop"'
+    - '$VcpkgRoot = "$env:CI_PROJECT_DIR\vcpkg"'
+    - 'git clone --depth 1 https://github.com/microsoft/vcpkg $VcpkgRoot'
+    - '& "$VcpkgRoot\bootstrap-vcpkg.bat" -disableMetrics'
+    - '& "$VcpkgRoot\vcpkg.exe" install libmariadb:x86-windows'
+    - '$MariaRoot = "$VcpkgRoot\installed\x86-windows"'
+    - 'if (!(Test-Path "$MariaRoot\include")) { throw "Missing include dir in $MariaRoot" }'
+    - 'if (!(Test-Path "$MariaRoot\lib\libmariadb.lib")) { throw "Missing import library in $MariaRoot\lib" }'
+    - 'if (!(Test-Path "$MariaRoot\bin\libmariadb.dll")) { throw "Missing runtime DLL in $MariaRoot\bin" }'
+    - 'cmake -S . -B build -G "Visual Studio 17 2022" -A Win32 -DMYSQLCAPI_ROOT_DIR="$MariaRoot"'
+    - 'cmake --build build --config Release --parallel'
+    - 'cmake --build build --config Release --target package --parallel'
+    - '$pkg = Get-ChildItem build/*.zip | Select-Object -First 1'
+    - 'if (-not $pkg) { throw "No ZIP package found in build/" }'
+    - 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
+    - '$zip = [System.IO.Compression.ZipFile]::OpenRead($pkg.FullName)'
+    - 'try { $entries = $zip.Entries | ForEach-Object { $_.FullName }; $hasMysqlDll = $entries | Where-Object { $_ -match "^[^/]+/components/mysql\.dll$" }; $hasMariaRootDll = $entries | Where-Object { $_ -match "^[^/]+/libmariadb\.dll$" }; if (-not $hasMysqlDll) { throw "Missing components/mysql.dll in package" }; if (-not $hasMariaRootDll) { throw "Missing root libmariadb.dll in package" } } finally { $zip.Dispose() }'
+    - 'New-Item -ItemType Directory -Force dist | Out-Null'
+    - 'Copy-Item $pkg.FullName dist/mysql-windows.zip'
+  artifacts:
+    paths:
+      - dist/mysql-windows.zip
+    expire_in: 1 year
+
+release_linux_only:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  needs:
+    - job: package_linux
+      artifacts: true
+  rules:
+    - if: '$CI_COMMIT_TAG && $WINDOWS_RUNNER_TAG == ""'
+    - when: never
+  script:
+    - echo "Creating GitLab release (Linux artifact)"
+  release:
+    tag_name: '$CI_COMMIT_TAG'
+    name: 'Release $CI_COMMIT_TAG'
+    description: 'Automated GitLab release generated by CI.'
+    assets:
+      links:
+        - name: Linux (x86) package
+          url: '$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_TAG/raw/dist/mysql-linux.tar.gz?job=package_linux'
+
+release_with_windows:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  needs:
+    - job: package_linux
+      artifacts: true
+    - job: package_windows
+      artifacts: true
+  rules:
+    - if: '$CI_COMMIT_TAG && $WINDOWS_RUNNER_TAG != ""'
+    - when: never
+  script:
+    - echo "Creating GitLab release (Linux and Windows artifacts)"
+  release:
+    tag_name: '$CI_COMMIT_TAG'
+    name: 'Release $CI_COMMIT_TAG'
+    description: 'Automated GitLab release generated by CI.'
+    assets:
+      links:
+        - name: Linux (x86) package
+          url: '$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_TAG/raw/dist/mysql-linux.tar.gz?job=package_linux'
+        - name: Windows (Win32) package
+          url: '$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_TAG/raw/dist/mysql-windows.zip?job=package_windows'
