@@ -90,11 +90,31 @@ if [[ ! -s "${TMP_DIR}/mysql_imports.txt" ]]; then
 	exit 1
 fi
 
-MISSING_COUNT="$(
-	LC_ALL=C comm -23 "${TMP_DIR}/mysql_imports.txt" "${TMP_DIR}/mysql_exports.txt" \
-	| tee "${TMP_DIR}/mysql_missing.txt" \
-	| wc -l
-)"
+LC_ALL=C comm -12 "${TMP_DIR}/mysql_imports.txt" "${TMP_DIR}/mysql_exports.txt" > "${TMP_DIR}/mysql_exported_needed.txt"
+LC_ALL=C comm -23 "${TMP_DIR}/mysql_imports.txt" "${TMP_DIR}/mysql_exports.txt" > "${TMP_DIR}/mysql_missing.txt"
+
+IMPORT_COUNT="$(wc -l < "${TMP_DIR}/mysql_imports.txt")"
+EXPORTED_COUNT="$(wc -l < "${TMP_DIR}/mysql_exported_needed.txt")"
+MISSING_COUNT="$(wc -l < "${TMP_DIR}/mysql_missing.txt")"
+
+echo "Plugin expects mysql_* symbols (${IMPORT_COUNT}):"
+sed 's/^/  - /' "${TMP_DIR}/mysql_imports.txt"
+echo
+echo "libmariadb exports for expected symbols (${EXPORTED_COUNT}):"
+if [[ "${EXPORTED_COUNT}" -gt 0 ]]; then
+	sed 's/^/  - /' "${TMP_DIR}/mysql_exported_needed.txt"
+else
+	echo "  (none)"
+fi
+echo
+echo "Per-symbol resolution:"
+awk '
+	NR == FNR { exported[$0] = 1; next }
+	{
+		if (exported[$0]) print "  OK      " $0;
+		else print "  MISSING " $0;
+	}
+' "${TMP_DIR}/mysql_exports.txt" "${TMP_DIR}/mysql_imports.txt"
 
 if [[ "${MISSING_COUNT}" -ne 0 ]]; then
 	echo "ERROR: linked libmariadb is missing exported mysql_* symbols required by plugin:" >&2
