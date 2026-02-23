@@ -100,6 +100,21 @@ if [[ -z "${PAWNCC_BIN}" ]]; then
 	exit 1
 fi
 
+PAWNCC_LIB_DIR="$(find "${RUN_DIR}" -maxdepth 5 -type f -name libpawnc.so -printf '%h\n' | head -n 1 || true)"
+if [[ -z "${PAWNCC_LIB_DIR}" ]]; then
+	PAWNCC_DIR="$(dirname "${PAWNCC_BIN}")"
+	for candidate in \
+		"${PAWNCC_DIR}" \
+		"${PAWNCC_DIR}/lib" \
+		"$(dirname "${PAWNCC_DIR}")"
+	do
+		if [[ -f "${candidate}/libpawnc.so" ]]; then
+			PAWNCC_LIB_DIR="${candidate}"
+			break
+		fi
+	done
+fi
+
 if [[ -n "${OPEN_MP_INCLUDE_DIR}" && ! -d "${OPEN_MP_INCLUDE_DIR}" ]]; then
 	echo "WARNING: OPEN_MP_INCLUDE_DIR does not exist: ${OPEN_MP_INCLUDE_DIR}; falling back to auto-detection."
 	OPEN_MP_INCLUDE_DIR=""
@@ -143,7 +158,19 @@ sed -E -i "s|^#define MYSQL_PASSWORD \".*\"$|#define MYSQL_PASSWORD \"${DB_PASS}
 sed -E -i "s|^#define MYSQL_DATABASE \".*\"$|#define MYSQL_DATABASE \"${DB_NAME}\"|" "${CI_UNIT_TEST_PWN}"
 
 echo "Compiling unit_test.pwn with ${PAWNCC_BIN}"
-if ! "${PAWNCC_BIN}" "${CI_UNIT_TEST_PWN}" -D"${ROOT_DIR}/tests" -d3 -Z \
+PAWNCC_ENV=()
+if [[ -n "${PAWNCC_LIB_DIR}" ]]; then
+	PAWNCC_LD_LIBRARY_PATH="${PAWNCC_LIB_DIR}"
+	if [[ -n "${LD_LIBRARY_PATH:-}" ]]; then
+		PAWNCC_LD_LIBRARY_PATH="${PAWNCC_LD_LIBRARY_PATH}:${LD_LIBRARY_PATH}"
+	fi
+	echo "Using pawncc runtime library path: ${PAWNCC_LIB_DIR}"
+	PAWNCC_ENV=(env "LD_LIBRARY_PATH=${PAWNCC_LD_LIBRARY_PATH}")
+else
+	echo "WARNING: libpawnc.so not found; running pawncc without extra LD_LIBRARY_PATH."
+fi
+
+if ! "${PAWNCC_ENV[@]}" "${PAWNCC_BIN}" "${CI_UNIT_TEST_PWN}" -D"${ROOT_DIR}/tests" -d3 -Z \
 	-i"${ROOT_DIR}/tests/include" \
 	-i"${OPEN_MP_INCLUDE_DIR}" \
 	-i"${BUILD_DIR}/src" \
