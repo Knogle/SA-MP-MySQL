@@ -29,6 +29,12 @@ set(_USE_BUNDLED_MARIADB_CONNECTOR OFF)
 if(BUILD_BUNDLED_MARIADB_CONNECTOR AND EXISTS "${_BUNDLED_MARIADB_ROOT}/CMakeLists.txt")
 	set(_BUNDLED_MARIADB_BUILD_DIR "${PROJECT_BINARY_DIR}/libs/mariadb-connector-c")
 
+	# Avoid winsock.h/winsock2.h redefinition conflicts in bundled
+	# Connector/C Schannel sources on recent Windows SDKs.
+	if(WIN32)
+		add_compile_definitions(_WINSOCKAPI_)
+	endif()
+
 	# Keep the embedded connector build minimal and deterministic in this project.
 	set(WITH_UNIT_TESTS OFF CACHE BOOL "Disable MariaDB Connector/C unit tests." FORCE)
 	set(WITH_CURL OFF CACHE BOOL "Disable CURL support in bundled MariaDB Connector/C." FORCE)
