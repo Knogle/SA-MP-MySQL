@@ -66,6 +66,7 @@ target_include_directories(mysql PRIVATE
 )
 
 target_compile_features(mysql PUBLIC
+	cxx_std_17
 	cxx_auto_type
 	cxx_decltype
 	cxx_defaulted_functions
