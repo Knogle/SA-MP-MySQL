@@ -100,13 +100,20 @@ if [[ -z "${PAWNCC_BIN}" ]]; then
 	exit 1
 fi
 
+if [[ -n "${OPEN_MP_INCLUDE_DIR}" && ! -d "${OPEN_MP_INCLUDE_DIR}" ]]; then
+	echo "WARNING: OPEN_MP_INCLUDE_DIR does not exist: ${OPEN_MP_INCLUDE_DIR}; falling back to auto-detection."
+	OPEN_MP_INCLUDE_DIR=""
+fi
+
 if [[ -z "${OPEN_MP_INCLUDE_DIR}" ]]; then
 	for candidate in \
 		"${RUN_DIR}/qawno/include" \
 		"${RUN_DIR}/qawno/includes" \
+		"${RUN_DIR}/include" \
+		"${RUN_DIR}/SDK/include" \
 		"${ROOT_DIR}/qawno/include"
 	do
-		if [[ -d "${candidate}" ]]; then
+		if [[ -d "${candidate}" && ( -f "${candidate}/open.mp.inc" || -f "${candidate}/a_samp.inc" ) ]]; then
 			OPEN_MP_INCLUDE_DIR="${candidate}"
 			break
 		fi

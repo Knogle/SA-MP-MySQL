@@ -169,13 +169,9 @@ jobs:
       - name: Verify Linux mysql component dynamic symbols
         run: scripts/ci/check-linux-mysql-symbols.sh build-ut/src/mysql.so
 
-      - name: Fetch open.mp include files
-        run: git clone --depth 1 https://github.com/openmultiplayer/qawno.git /tmp/qawno
-
       - name: Run open.mp unit tests
         env:
           BUILD_DIR: build-ut
-          OPEN_MP_INCLUDE_DIR: /tmp/qawno/include
           DB_HOST: 127.0.0.1
           DB_USER: mysqlunittest
           DB_PASS: mysqlunittest
