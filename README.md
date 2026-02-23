@@ -73,6 +73,36 @@ git submodule update --init --recursive
 
 Default build is 32-bit (`FORCE_32_BIT=ON`).
 
+#### Reproducible build (Docker + Earthly, Ubuntu 20.04 baseline)
+
+Linux CI and local builds share the same Earthly targets and the same Docker build image.
+
+Requirements:
+
+- Docker
+- Earthly
+
+Build:
+
+```bash
+earthly --ci +linux-build --UBUNTU_VERSION=20.04
+```
+
+Release package:
+
+```bash
+earthly --ci +linux-package --UBUNTU_VERSION=20.04
+```
+
+Artifacts are exported locally to:
+
+- `dist/linux/mysql.so`
+- `dist/linux/a_mysql.inc`
+- `dist/linux/libmariadb.so.3`
+- `dist/mysql-linux.tar.gz` (package target)
+
+#### Native CMake build (without Earthly)
+
 For `FORCE_32_BIT=ON`, ensure 32-bit OpenSSL development files are installed:
 
 - Ubuntu/Debian:
@@ -123,6 +153,16 @@ Release behavior:
 - Builds Linux and (optionally) Windows artifacts.
 - Packages tagged builds via CPack.
 - Publishes release entries automatically with package asset links.
+
+Linux CI baseline:
+
+- Ubuntu `20.04` is used inside `docker/ci/linux-build.Dockerfile`.
+- Earthly targets in `Earthfile` are the single Linux build abstraction used by local and CI runs.
+
+Migration path to Ubuntu 22.04:
+
+- A dedicated compatibility probe job runs Linux Earthly builds with `--UBUNTU_VERSION=22.04`.
+- The probe is non-blocking (`allow_failure` / `continue-on-error`) so release stability remains on 20.04 while migration is validated continuously.
 
 ### GitLab Windows runner setup
 

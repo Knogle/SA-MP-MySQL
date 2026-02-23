@@ -15,30 +15,46 @@ variables:
   GIT_SUBMODULE_STRATEGY: recursive
   WINDOWS_RUNNER_TAG: ""
 
+.earthly_linux_job:
+  image: earthly/earthly:v0.8.16
+  services:
+    - name: docker:27-dind
+      alias: docker
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+  before_script:
+    - earthly --version
+
 build_linux:
   stage: build
-  image: ubuntu:24.04
+  extends: .earthly_linux_job
   rules:
     - if: '$CI_COMMIT_TAG'
       when: never
     - when: on_success
-  before_script:
-    - dpkg --add-architecture i386
-    - apt-get update
-    - apt-get install -y --no-install-recommends ca-certificates git cmake build-essential pkg-config binutils gcc-multilib g++-multilib libssl-dev:i386
-    - test -f /usr/lib/i386-linux-gnu/libssl.so
-    - test -f /usr/lib/i386-linux-gnu/libcrypto.so
   script:
-    - cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DFORCE_32_BIT=ON -DOPENSSL_SSL_LIBRARY=/usr/lib/i386-linux-gnu/libssl.so -DOPENSSL_CRYPTO_LIBRARY=/usr/lib/i386-linux-gnu/libcrypto.so -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-    - cmake --build build --parallel
-    - scripts/ci/check-linux-mysql-symbols.sh
+    - earthly --ci +linux-build --UBUNTU_VERSION=20.04
   artifacts:
     when: always
     paths:
-      - build/src/mysql.so
-      - build/src/a_mysql.inc
-      - build/**/libmariadb.so*
+      - dist/linux/mysql.so
+      - dist/linux/a_mysql.inc
+      - dist/linux/libmariadb.so.3
     expire_in: 1 week
+
+build_linux_compat_22:
+  stage: build
+  extends: .earthly_linux_job
+  allow_failure: true
+  rules:
+    - if: '$CI_COMMIT_TAG'
+      when: never
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - when: never
+  script:
+    - earthly --ci +linux-build --UBUNTU_VERSION=22.04
 
 build_windows:
   stage: build
@@ -64,7 +80,7 @@ build_windows:
 
 unit_tests_linux:
   stage: test
-  image: ubuntu:24.04
+  image: ubuntu:20.04
   services:
     - name: mariadb:11
       alias: mariadb
@@ -100,28 +116,12 @@ unit_tests_linux:
 
 package_linux:
   stage: package
-  image: ubuntu:24.04
+  extends: .earthly_linux_job
   rules:
     - if: '$CI_COMMIT_TAG'
     - when: never
-  before_script:
-    - dpkg --add-architecture i386
-    - apt-get update
-    - apt-get install -y --no-install-recommends ca-certificates git cmake build-essential pkg-config binutils gcc-multilib g++-multilib libssl-dev:i386
-    - test -f /usr/lib/i386-linux-gnu/libssl.so
-    - test -f /usr/lib/i386-linux-gnu/libcrypto.so
   script:
-    - cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DFORCE_32_BIT=ON -DOPENSSL_SSL_LIBRARY=/usr/lib/i386-linux-gnu/libssl.so -DOPENSSL_CRYPTO_LIBRARY=/usr/lib/i386-linux-gnu/libcrypto.so -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-    - cmake --build build --parallel
-    - scripts/ci/check-linux-mysql-symbols.sh
-    - cmake --build build --target package --parallel
-    - 'set -- build/*.tar.gz'
-    - '[ -e "$1" ]'
-    - 'PKG="$1"'
-    - 'tar -tzf "$PKG" | grep -E "^[^/]+/components/mysql\.so$"'
-    - 'tar -tzf "$PKG" | grep -E "^[^/]+/libmariadb\.so\.3$"'
-    - mkdir -p dist
-    - 'cp "$PKG" dist/mysql-linux.tar.gz'
+    - earthly --ci +linux-package --UBUNTU_VERSION=20.04
   artifacts:
     paths:
       - dist/mysql-linux.tar.gz

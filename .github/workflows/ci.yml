@@ -7,6 +7,9 @@ on:
     types: [published]
   workflow_dispatch:
 
+env:
+  EARTHLY_VERSION: v0.8.16
+
 jobs:
   build:
     name: ${{ matrix.name }}
@@ -18,9 +21,9 @@ jobs:
       matrix:
         include:
           - id: linux
-            name: Linux (x86)
+            name: Linux (x86, Ubuntu 20.04 via Earthly)
             os: ubuntu-22.04
-            release_glob: build/*.tar.gz
+            release_glob: dist/mysql-linux.tar.gz
           - id: windows
             name: Windows (Win32)
             os: windows-2022
@@ -32,24 +35,17 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install Linux build dependencies
+      - name: Install Earthly (Linux)
         if: runner.os == 'Linux'
         run: |
-          sudo dpkg --add-architecture i386
-          sudo apt-get update
-          sudo apt-get install -y gcc-multilib g++-multilib libssl-dev:i386
-          test -f /usr/lib/i386-linux-gnu/libssl.so
-          test -f /usr/lib/i386-linux-gnu/libcrypto.so
+          curl -fsSL "https://github.com/earthly/earthly/releases/download/${EARTHLY_VERSION}/earthly-linux-amd64" -o earthly
+          chmod +x earthly
+          sudo mv earthly /usr/local/bin/earthly
+          earthly --version
 
-      - name: Configure (Linux)
+      - name: Build (Linux via Earthly, Ubuntu 20.04)
         if: runner.os == 'Linux'
-        run: >
-          cmake -S . -B build
-          -DCMAKE_BUILD_TYPE=Release
-          -DFORCE_32_BIT=ON
-          -DOPENSSL_SSL_LIBRARY=/usr/lib/i386-linux-gnu/libssl.so
-          -DOPENSSL_CRYPTO_LIBRARY=/usr/lib/i386-linux-gnu/libcrypto.so
-          -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+        run: earthly --ci +linux-build --UBUNTU_VERSION=20.04
 
       - name: Configure (Windows)
         if: runner.os == 'Windows'
@@ -57,14 +53,6 @@ jobs:
         run: |
           cmake -S . -B build -G "Visual Studio 17 2022" -A Win32 `
             -DBUILD_BUNDLED_MARIADB_CONNECTOR=ON
-
-      - name: Build (Linux)
-        if: runner.os == 'Linux'
-        run: cmake --build build --parallel
-
-      - name: Verify Linux mysql component dynamic symbols
-        if: runner.os == 'Linux'
-        run: scripts/ci/check-linux-mysql-symbols.sh
 
       - name: Build (Windows)
         if: runner.os == 'Windows'
@@ -76,9 +64,9 @@ jobs:
         with:
           name: build-linux-x86
           path: |
-            build/src/mysql.so
-            build/src/a_mysql.inc
-            build/**/libmariadb.so*
+            dist/linux/mysql.so
+            dist/linux/a_mysql.inc
+            dist/linux/libmariadb.so.3
           if-no-files-found: error
 
       - name: Upload Windows build artifacts
@@ -92,21 +80,13 @@ jobs:
             build/**/libmariadb.dll
           if-no-files-found: error
 
-      - name: Package (Linux release only)
+      - name: Package (Linux release only, Earthly)
         if: github.event_name == 'release' && runner.os == 'Linux'
-        run: cmake --build build --target package --parallel
+        run: earthly --ci +linux-package --UBUNTU_VERSION=20.04
 
       - name: Package (Windows release only)
         if: github.event_name == 'release' && runner.os == 'Windows'
         run: cmake --build build --config Release --target package --parallel
-
-      - name: Verify Linux package contents
-        if: github.event_name == 'release' && runner.os == 'Linux'
-        run: |
-          PKG="$(ls -1 build/*.tar.gz | head -n 1)"
-          test -n "$PKG"
-          tar -tzf "$PKG" | grep -E '^[^/]+/components/mysql\.so$'
-          tar -tzf "$PKG" | grep -E '^[^/]+/libmariadb\.so\.3$'
 
       - name: Verify Windows package contents
         if: github.event_name == 'release' && runner.os == 'Windows'
@@ -133,6 +113,29 @@ jobs:
           name: release-${{ matrix.id }}
           path: ${{ matrix.release_glob }}
           if-no-files-found: error
+
+  linux-compat-22:
+    name: Linux Compat Probe (Ubuntu 22.04 via Earthly)
+    if: github.event_name != 'release'
+    runs-on: ubuntu-22.04
+    continue-on-error: true
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Earthly
+        run: |
+          curl -fsSL "https://github.com/earthly/earthly/releases/download/${EARTHLY_VERSION}/earthly-linux-amd64" -o earthly
+          chmod +x earthly
+          sudo mv earthly /usr/local/bin/earthly
+          earthly --version
+
+      - name: Build compat probe
+        run: earthly --ci +linux-build --UBUNTU_VERSION=22.04
 
   unit-tests-linux:
     if: ${{ false }} # Temporarily disabled.

@@ -1,0 +1,8 @@
+.git
+build
+build-*
+dist
+unit-test-logs
+tests/*.amx
+*.amx
+

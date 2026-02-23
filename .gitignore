@@ -14,6 +14,7 @@ __*/
 !.github/workflows/
 !.github/workflows/*.yml
 !.gitlab-ci.yml
+!.earthlyignore
 
 #Visual Studio
 *.sdf
