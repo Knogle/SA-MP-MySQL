@@ -70,6 +70,28 @@ jobs:
         if: runner.os == 'Windows'
         run: cmake --build build --config Release --parallel
 
+      - name: Upload Linux build artifacts
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-linux-x86
+          path: |
+            build/src/mysql.so
+            build/src/a_mysql.inc
+            build/**/libmariadb.so*
+          if-no-files-found: error
+
+      - name: Upload Windows build artifacts
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-windows-win32
+          path: |
+            build/src/Release/mysql.dll
+            build/src/a_mysql.inc
+            build/**/libmariadb.dll
+          if-no-files-found: error
+
       - name: Package (Linux release only)
         if: github.event_name == 'release' && runner.os == 'Linux'
         run: cmake --build build --target package --parallel

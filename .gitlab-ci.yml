@@ -32,6 +32,13 @@ build_linux:
     - cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DFORCE_32_BIT=ON -DOPENSSL_SSL_LIBRARY=/usr/lib/i386-linux-gnu/libssl.so -DOPENSSL_CRYPTO_LIBRARY=/usr/lib/i386-linux-gnu/libcrypto.so -DCMAKE_POSITION_INDEPENDENT_CODE=ON
     - cmake --build build --parallel
     - scripts/ci/check-linux-mysql-symbols.sh
+  artifacts:
+    when: always
+    paths:
+      - build/src/mysql.so
+      - build/src/a_mysql.inc
+      - build/**/libmariadb.so*
+    expire_in: 1 week
 
 build_windows:
   stage: build
@@ -47,6 +54,13 @@ build_windows:
     - '$ErrorActionPreference = "Stop"'
     - 'cmake -S . -B build -G "Visual Studio 17 2022" -A Win32 -DBUILD_BUNDLED_MARIADB_CONNECTOR=ON'
     - 'cmake --build build --config Release --parallel'
+  artifacts:
+    when: always
+    paths:
+      - build/src/Release/mysql.dll
+      - build/src/a_mysql.inc
+      - build/**/libmariadb.dll
+    expire_in: 1 week
 
 unit_tests_linux:
   stage: test
