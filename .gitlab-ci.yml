@@ -45,15 +45,7 @@ build_windows:
     - when: on_success
   script:
     - '$ErrorActionPreference = "Stop"'
-    - '$VcpkgRoot = "$env:CI_PROJECT_DIR\vcpkg"'
-    - 'git clone --depth 1 https://github.com/microsoft/vcpkg $VcpkgRoot'
-    - '& "$VcpkgRoot\bootstrap-vcpkg.bat" -disableMetrics'
-    - '& "$VcpkgRoot\vcpkg.exe" install libmariadb:x86-windows'
-    - '$MariaRoot = "$VcpkgRoot\installed\x86-windows"'
-    - 'if (!(Test-Path "$MariaRoot\include")) { throw "Missing include dir in $MariaRoot" }'
-    - 'if (!(Test-Path "$MariaRoot\lib\libmariadb.lib")) { throw "Missing import library in $MariaRoot\lib" }'
-    - 'if (!(Test-Path "$MariaRoot\bin\libmariadb.dll")) { throw "Missing runtime DLL in $MariaRoot\bin" }'
-    - 'cmake -S . -B build -G "Visual Studio 17 2022" -A Win32 -DMYSQLCAPI_ROOT_DIR="$MariaRoot"'
+    - 'cmake -S . -B build -G "Visual Studio 17 2022" -A Win32 -DBUILD_BUNDLED_MARIADB_CONNECTOR=ON'
     - 'cmake --build build --config Release --parallel'
 
 unit_tests_linux:
@@ -131,15 +123,7 @@ package_windows:
     - when: never
   script:
     - '$ErrorActionPreference = "Stop"'
-    - '$VcpkgRoot = "$env:CI_PROJECT_DIR\vcpkg"'
-    - 'git clone --depth 1 https://github.com/microsoft/vcpkg $VcpkgRoot'
-    - '& "$VcpkgRoot\bootstrap-vcpkg.bat" -disableMetrics'
-    - '& "$VcpkgRoot\vcpkg.exe" install libmariadb:x86-windows'
-    - '$MariaRoot = "$VcpkgRoot\installed\x86-windows"'
-    - 'if (!(Test-Path "$MariaRoot\include")) { throw "Missing include dir in $MariaRoot" }'
-    - 'if (!(Test-Path "$MariaRoot\lib\libmariadb.lib")) { throw "Missing import library in $MariaRoot\lib" }'
-    - 'if (!(Test-Path "$MariaRoot\bin\libmariadb.dll")) { throw "Missing runtime DLL in $MariaRoot\bin" }'
-    - 'cmake -S . -B build -G "Visual Studio 17 2022" -A Win32 -DMYSQLCAPI_ROOT_DIR="$MariaRoot"'
+    - 'cmake -S . -B build -G "Visual Studio 17 2022" -A Win32 -DBUILD_BUNDLED_MARIADB_CONNECTOR=ON'
     - 'cmake --build build --config Release --parallel'
     - 'cmake --build build --config Release --target package --parallel'
     - '$pkg = Get-ChildItem build/*.zip | Select-Object -First 1'

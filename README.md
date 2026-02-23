@@ -95,10 +95,10 @@ Output:
 
 ### Windows (Visual Studio 2022, Win32)
 
-Install MariaDB Connector/C x86 (for example via vcpkg), then configure and build:
+Build with the bundled MariaDB Connector/C to produce the packaged `libmariadb.dll` from source:
 
 ```powershell
-cmake -S . -B build -G "Visual Studio 17 2022" -A Win32 -DMYSQLCAPI_ROOT_DIR="<path-to-mariadb-x86-root>"
+cmake -S . -B build -G "Visual Studio 17 2022" -A Win32 -DBUILD_BUNDLED_MARIADB_CONNECTOR=ON
 cmake --build build --config Release --parallel
 ```
 
