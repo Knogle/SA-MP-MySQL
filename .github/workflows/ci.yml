@@ -19,7 +19,7 @@ jobs:
         include:
           - id: linux
             name: Linux (x86)
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             release_glob: build/*.tar.gz
           - id: windows
             name: Windows (Win32)
@@ -114,7 +114,7 @@ jobs:
 
   unit-tests-linux:
     name: Linux Unit Tests (open.mp + MariaDB)
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     permissions:
       contents: read
     services:
@@ -190,7 +190,7 @@ jobs:
   upload-release-assets:
     name: Upload release assets
     if: github.event_name == 'release'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs: build
     permissions:
       contents: write
