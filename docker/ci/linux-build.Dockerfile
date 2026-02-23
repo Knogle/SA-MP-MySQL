@@ -9,6 +9,7 @@ RUN dpkg --add-architecture i386 \
         ca-certificates \
         git \
         cmake \
+        python3-pip \
         build-essential \
         pkg-config \
         binutils \
@@ -16,5 +17,6 @@ RUN dpkg --add-architecture i386 \
         g++-multilib \
         libssl-dev:i386 \
         tar \
+    && pip3 install --no-cache-dir "cmake==3.31.6" \
+    && cmake --version \
     && rm -rf /var/lib/apt/lists/*
-
