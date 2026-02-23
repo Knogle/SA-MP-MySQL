@@ -82,7 +82,7 @@ build_windows:
 
 unit_tests_linux:
   stage: test
-  image: ubuntu:20.04
+  image: ubuntu:22.04
   variables:
     DEBIAN_FRONTEND: noninteractive
     TZ: Etc/UTC

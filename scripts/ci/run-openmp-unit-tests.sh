@@ -52,14 +52,28 @@ if [[ -n "${OPENMP_SERVER_DIR}" ]]; then
 	RUN_DIR="${OPENMP_SERVER_DIR}"
 else
 	OPENMP_API_URL="${OPENMP_API_URL:-https://api.github.com/repos/openmultiplayer/open.mp/releases/latest}"
-	OPENMP_PREFERRED_ASSET_REGEX="${OPENMP_PREFERRED_ASSET_REGEX:-linux-x86.*staticssl.*\\.(tar\\.gz|tgz|zip)$}"
-	OPENMP_ASSET_REGEX="${OPENMP_ASSET_REGEX:-linux-x86.*\\.(tar\\.gz|tgz|zip)$}"
+	OPENMP_URL="${OPENMP_URL:-}"
+	OPENMP_ASSET_REGEX="${OPENMP_ASSET_REGEX:-\\.(tar\\.gz|tgz|zip)$}"
 
 	echo "Resolving latest open.mp Linux x86 server package..."
-	OMP_JSON="$(curl -fsSL "${OPENMP_API_URL}")"
-	OMP_URL="$(printf '%s' "${OMP_JSON}" | jq -r --arg re "${OPENMP_PREFERRED_ASSET_REGEX}" '.assets[] | select(.name | test($re)) | .browser_download_url' | head -n 1)"
-	if [[ -z "${OMP_URL}" || "${OMP_URL}" == "null" ]]; then
-		OMP_URL="$(printf '%s' "${OMP_JSON}" | jq -r --arg re "${OPENMP_ASSET_REGEX}" '.assets[] | select(.name | test($re)) | .browser_download_url' | head -n 1)"
+	if [[ -z "${OPENMP_URL}" ]]; then
+		OMP_JSON="$(curl -fsSL "${OPENMP_API_URL}")"
+		OMP_URL="$(printf '%s' "${OMP_JSON}" | jq -r --arg ext_re "${OPENMP_ASSET_REGEX}" '
+			[
+				.assets[]
+				| {name: .name, url: .browser_download_url}
+				| select(.name | test("linux"; "i"))
+				| select(.name | test("x86"; "i"))
+				| select(.name | test($ext_re))
+			] as $assets
+			| (
+				($assets | map(select(.name | test("staticssl"; "i"))) | .[0].url)
+				// ($assets | map(select((.name | test("dynssl"; "i")) | not)) | .[0].url)
+				// ($assets | .[0].url)
+			) // empty
+		')"
+	else
+		OMP_URL="${OPENMP_URL}"
 	fi
 
 	if [[ -z "${OMP_URL}" || "${OMP_URL}" == "null" ]]; then
