@@ -45,7 +45,7 @@ jobs:
 
       - name: Build (Linux via Earthly, Ubuntu 20.04)
         if: runner.os == 'Linux'
-        run: earthly --ci +linux-build --UBUNTU_VERSION=20.04
+        run: earthly --ci --output +linux-build --UBUNTU_VERSION=20.04
 
       - name: Configure (Windows)
         if: runner.os == 'Windows'
@@ -82,7 +82,7 @@ jobs:
 
       - name: Package (Linux release only, Earthly)
         if: github.event_name == 'release' && runner.os == 'Linux'
-        run: earthly --ci +linux-package --UBUNTU_VERSION=20.04
+        run: earthly --ci --output +linux-package --UBUNTU_VERSION=20.04
 
       - name: Package (Windows release only)
         if: github.event_name == 'release' && runner.os == 'Windows'
