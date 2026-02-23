@@ -16,7 +16,9 @@ variables:
   WINDOWS_RUNNER_TAG: ""
 
 .earthly_linux_job:
-  image: earthly/earthly:v0.8.16
+  image:
+    name: earthly/earthly:v0.8.16
+    entrypoint: [""]
   services:
     - name: docker:27-dind
       alias: docker
