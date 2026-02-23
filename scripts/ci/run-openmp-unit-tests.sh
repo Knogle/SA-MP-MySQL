@@ -52,11 +52,15 @@ if [[ -n "${OPENMP_SERVER_DIR}" ]]; then
 	RUN_DIR="${OPENMP_SERVER_DIR}"
 else
 	OPENMP_API_URL="${OPENMP_API_URL:-https://api.github.com/repos/openmultiplayer/open.mp/releases/latest}"
+	OPENMP_PREFERRED_ASSET_REGEX="${OPENMP_PREFERRED_ASSET_REGEX:-linux-x86.*staticssl.*\\.(tar\\.gz|tgz|zip)$}"
 	OPENMP_ASSET_REGEX="${OPENMP_ASSET_REGEX:-linux-x86.*\\.(tar\\.gz|tgz|zip)$}"
 
 	echo "Resolving latest open.mp Linux x86 server package..."
 	OMP_JSON="$(curl -fsSL "${OPENMP_API_URL}")"
-	OMP_URL="$(printf '%s' "${OMP_JSON}" | jq -r --arg re "${OPENMP_ASSET_REGEX}" '.assets[] | select(.name | test($re)) | .browser_download_url' | head -n 1)"
+	OMP_URL="$(printf '%s' "${OMP_JSON}" | jq -r --arg re "${OPENMP_PREFERRED_ASSET_REGEX}" '.assets[] | select(.name | test($re)) | .browser_download_url' | head -n 1)"
+	if [[ -z "${OMP_URL}" || "${OMP_URL}" == "null" ]]; then
+		OMP_URL="$(printf '%s' "${OMP_JSON}" | jq -r --arg re "${OPENMP_ASSET_REGEX}" '.assets[] | select(.name | test($re)) | .browser_download_url' | head -n 1)"
+	fi
 
 	if [[ -z "${OMP_URL}" || "${OMP_URL}" == "null" ]]; then
 		echo "ERROR: no open.mp Linux x86 package found via ${OPENMP_API_URL}" >&2
@@ -92,6 +96,13 @@ fi
 if [[ ! -x "${RUN_DIR}/omp-server" ]]; then
 	echo "ERROR: omp-server not executable: ${RUN_DIR}/omp-server" >&2
 	exit 1
+fi
+
+if command -v ldd >/dev/null 2>&1; then
+	MISSING_OMP_LIBS="$(ldd "${RUN_DIR}/omp-server" 2>/dev/null | awk '/not found/{print $1}' | xargs || true)"
+	if [[ -n "${MISSING_OMP_LIBS}" ]]; then
+		echo "WARNING: omp-server has missing runtime libs: ${MISSING_OMP_LIBS}" >&2
+	fi
 fi
 
 PAWNCC_BIN="$(find "${RUN_DIR}" -maxdepth 3 -type f -name pawncc | head -n 1)"
@@ -240,6 +251,8 @@ OMP_EXIT=0
 
 if [[ ${OMP_EXIT} -eq 124 ]]; then
 	echo "ERROR: open.mp unit tests timed out after ${UNIT_TEST_TIMEOUT}." >&2
+elif [[ ${OMP_EXIT} -ne 0 ]]; then
+	echo "ERROR: omp-server exited with status ${OMP_EXIT}." >&2
 fi
 
 if grep -q "All tests passed!" "${LOG_PATH}"; then
@@ -251,6 +264,8 @@ echo "Unit tests failed. Summary:" >&2
 grep -nE "All tests passed|tests failed|ASSERT FAILED|executing test|passed!|failed\\.|component.mysql|Error|ERROR" "${LOG_PATH}" | tail -n 300 >&2 || true
 echo "Full runtime log: ${LOG_PATH}" >&2
 echo "Compile log: ${COMPILE_LOG_PATH}" >&2
+echo "Runtime log tail:" >&2
+tail -n 200 "${LOG_PATH}" >&2 || true
 if [[ -f "${COMPILE_LOG_PATH}" ]]; then
 	echo "Compile log tail:" >&2
 	tail -n 120 "${COMPILE_LOG_PATH}" >&2 || true
