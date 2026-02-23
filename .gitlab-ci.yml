@@ -101,7 +101,9 @@ unit_tests_linux:
   before_script:
     - dpkg --add-architecture i386
     - apt-get update
-    - apt-get install -y --no-install-recommends ca-certificates git cmake build-essential pkg-config binutils gcc-multilib g++-multilib libssl-dev:i386 mariadb-client jq curl unzip socat
+    - apt-get install -y --no-install-recommends ca-certificates git cmake build-essential pkg-config binutils gcc-multilib g++-multilib libssl-dev:i386 mariadb-client jq curl unzip socat python3-pip
+    - python3 -m pip install --no-cache-dir cmake==3.31.6
+    - cmake --version
     - test -f /usr/lib/i386-linux-gnu/libssl.so
     - test -f /usr/lib/i386-linux-gnu/libcrypto.so
   script:
