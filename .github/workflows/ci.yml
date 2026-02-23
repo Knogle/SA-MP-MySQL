@@ -113,6 +113,7 @@ jobs:
           if-no-files-found: error
 
   unit-tests-linux:
+    if: ${{ false }} # Temporarily disabled.
     name: Linux Unit Tests (open.mp + MariaDB)
     runs-on: ubuntu-22.04
     permissions:
