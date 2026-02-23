@@ -143,11 +143,16 @@ sed -E -i "s|^#define MYSQL_PASSWORD \".*\"$|#define MYSQL_PASSWORD \"${DB_PASS}
 sed -E -i "s|^#define MYSQL_DATABASE \".*\"$|#define MYSQL_DATABASE \"${DB_NAME}\"|" "${CI_UNIT_TEST_PWN}"
 
 echo "Compiling unit_test.pwn with ${PAWNCC_BIN}"
-"${PAWNCC_BIN}" "${CI_UNIT_TEST_PWN}" -D"${ROOT_DIR}/tests" -d3 -Z \
+if ! "${PAWNCC_BIN}" "${CI_UNIT_TEST_PWN}" -D"${ROOT_DIR}/tests" -d3 -Z \
 	-i"${ROOT_DIR}/tests/include" \
 	-i"${OPEN_MP_INCLUDE_DIR}" \
 	-i"${BUILD_DIR}/src" \
-	-o"${RUN_DIR}/gamemodes/unit_test.amx" > "${COMPILE_LOG_PATH}" 2>&1
+	-o"${RUN_DIR}/gamemodes/unit_test.amx" > "${COMPILE_LOG_PATH}" 2>&1; then
+	echo "ERROR: unit_test.pwn compilation failed." >&2
+	echo "Compile log tail:" >&2
+	tail -n 200 "${COMPILE_LOG_PATH}" >&2 || true
+	exit 1
+fi
 
 cp "${ROOT_DIR}/tests/test_data/scriptfiles/test.sql" "${RUN_DIR}/scriptfiles/test.sql"
 cp "${ROOT_DIR}/tests/test_data/mysql-invalid1.ini" "${RUN_DIR}/mysql-invalid1.ini"
@@ -200,10 +205,15 @@ cat > "${RUN_DIR}/config.json" <<'EOF'
 EOF
 
 echo "Running open.mp unit tests..."
+OMP_EXIT=0
 (
 	cd "${RUN_DIR}"
-	timeout "${UNIT_TEST_TIMEOUT}" ./omp-server > "${LOG_PATH}" 2>&1 || true
-)
+	timeout "${UNIT_TEST_TIMEOUT}" ./omp-server > "${LOG_PATH}" 2>&1
+) || OMP_EXIT=$?
+
+if [[ ${OMP_EXIT} -eq 124 ]]; then
+	echo "ERROR: open.mp unit tests timed out after ${UNIT_TEST_TIMEOUT}." >&2
+fi
 
 if grep -q "All tests passed!" "${LOG_PATH}"; then
 	echo "Unit tests passed."
@@ -214,4 +224,8 @@ echo "Unit tests failed. Summary:" >&2
 grep -nE "All tests passed|tests failed|ASSERT FAILED|executing test|passed!|failed\\.|component.mysql|Error|ERROR" "${LOG_PATH}" | tail -n 300 >&2 || true
 echo "Full runtime log: ${LOG_PATH}" >&2
 echo "Compile log: ${COMPILE_LOG_PATH}" >&2
+if [[ -f "${COMPILE_LOG_PATH}" ]]; then
+	echo "Compile log tail:" >&2
+	tail -n 120 "${COMPILE_LOG_PATH}" >&2 || true
+fi
 exit 1
