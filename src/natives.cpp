@@ -656,7 +656,11 @@ static bool SendQueryWithCallback(AMX *amx, cell *params,
 	if (callback_error && callback_error.type() != CCallback::Error::EMPTY_NAME)
 	{
 		CLog::Get()->LogNative(callback_error);
-		return false;
+
+		// A missing completion callback does not make the query invalid. Keep
+		// the error visible, then execute the query as fire-and-forget.
+		if (callback_error.type() != CCallback::Error::NOT_FOUND)
+			return false;
 	}
 
 

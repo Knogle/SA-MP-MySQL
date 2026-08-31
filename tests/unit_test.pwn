@@ -1202,8 +1202,8 @@ Test:TQueryFail()
 	ASSERT_FALSE(mysql_tquery(MYSQL_INVALID_HANDLE, "SELECT 1"));
 	ASSERT_TRUE (mysql_tquery(sql, "SELECT 1"));
 
-	ASSERT_FALSE(mysql_tquery(sql, "SELECT 1", "NonExistingCallback"));
-	ASSERT_FALSE(mysql_tquery(sql, "SELECT 1", "NonExistingCallback", "dfs", 1));
+	ASSERT_TRUE (mysql_tquery(sql, "SELECT 1", "NonExistingCallback"));
+	ASSERT_TRUE (mysql_tquery(sql, "SELECT 1", "NonExistingCallback", "dfs", 1));
 	ASSERT_FALSE(mysql_tquery(sql, "SELECT 1", "ValidCallback", "dfs", 1));
 	ASSERT_FALSE(mysql_tquery(sql, "SELECT 1", "ValidCallback", "dfs", 1, 3.452, "asdf", 2322));
  	ASSERT_TRUE (mysql_tquery(sql, "SELECT 1", "ValidCallback", "dfs", 1, 3.452, "asdf"));
@@ -1245,8 +1245,8 @@ Test:PQueryFail()
 	ASSERT_FALSE(mysql_pquery(MYSQL_INVALID_HANDLE, "SELECT 1"));
 	ASSERT_TRUE (mysql_pquery(sql, "SELECT 1"));
 
-	ASSERT_FALSE(mysql_pquery(sql, "SELECT 1", "NonExistingCallback"));
-	ASSERT_FALSE(mysql_pquery(sql, "SELECT 1", "NonExistingCallback", "dfs", 1));
+	ASSERT_TRUE (mysql_pquery(sql, "SELECT 1", "NonExistingCallback"));
+	ASSERT_TRUE (mysql_pquery(sql, "SELECT 1", "NonExistingCallback", "dfs", 1));
 	ASSERT_FALSE(mysql_pquery(sql, "SELECT 1", "ValidCallback", "dfs", 1));
 	ASSERT_FALSE(mysql_pquery(sql, "SELECT 1", "ValidCallback", "dfs", 1, 3.452, "asdf", 2322));
  	ASSERT_TRUE (mysql_pquery(sql, "SELECT 1", "ValidCallback", "dfs", 1, 3.452, "asdf"));
