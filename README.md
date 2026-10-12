@@ -28,6 +28,19 @@ Current maintainer: **[Knogle](https://github.com/Knogle)**
    - `libmariadb.so.3` (Linux) or `libmariadb.dll` (Windows) in the server root
 4. No `config.json` changes are required.
 
+### sampctl
+
+With sampctl 1.14.1, use an open.mp project (`"preset": "openmp"`) and install the component:
+
+```bash
+sampctl install component://Knogle/SA-MP-MySQL@open.mp
+```
+
+The `open.mp` branch contains the updated package definition; the existing R42 tag still
+contains the old definition. The `component://` scheme installs the binary into `components/`.
+sampctl also extracts `a_mysql.inc` and places the bundled MariaDB library in the server root.
+Use `#include <a_mysql>` in your Pawn script.
+
 ## Logging Configuration
 
 The component supports open.mp config-based logging toggles:

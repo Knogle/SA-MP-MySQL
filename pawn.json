@@ -3,13 +3,13 @@
     "repo": "SA-MP-MySQL",
     "resources": [
         {
-            "name": "^mysql-.+-[Ll]inux\\.tar\\.gz$",
+            "name": "^mysql-(.+-)?[Ll]inux\\.tar\\.gz$",
             "platform": "linux",
             "archive": true,
             "includes": ["mysql-.+\\/pawno\\/include"],
-            "plugins": ["mysql-.+\\/components\\/mysql.so"],
+            "plugins": ["mysql-.+\\/components\\/mysql\\.so$"],
             "files": {
-                "mysql-.+\\/libmariadb.so.3": "libmariadb.so.3"
+                "mysql-.+\\/libmariadb\\.so\\.3$": "libmariadb.so.3"
             }
         },
         {
@@ -17,15 +17,12 @@
             "platform": "windows",
             "archive": true,
             "includes": ["mysql-.+\\/pawno\\/include"],
-            "plugins": ["mysql-.+\\/components\\/mysql.dll"],
+            "plugins": ["mysql-.+\\/components\\/mysql\\.dll$"],
             "files": {
-                "mysql-.+\\/libmariadb.dll": "libmariadb.dll"
+                "mysql-.+\\/libmariadb\\.dll$": "libmariadb.dll"
             }
         }
     ],
-    "runtime": {
-        "plugins": ["Knogle/SA-MP-MySQL"]
-    },
     "contributors": [
         "Knogle",
         "AndreT",
